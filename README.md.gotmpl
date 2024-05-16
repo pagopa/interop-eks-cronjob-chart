@@ -1,33 +1,16 @@
 
-# interop-eks-cronjob-chart
+{{ template "chart.header" . }}
 
-![Version: 0.1.0](https://img.shields.io/badge/Version-0.1.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 1.0.0](https://img.shields.io/badge/AppVersion-1.0.0-informational?style=flat-square)
+{{ template "chart.badgesSection" . }}
 
-A Helm chart for PagoPa Interop CronJobs
+{{ template "chart.description" . }}
 
-## Values
+{{ template "chart.valuesHeader" . }}
 
 The following table lists the configurable parameters of the Interop-eks-cronjob-chart chart and their default values.
 
-| Key | Type | Default | Description |
-|-----|------|---------|-------------|
-| activeDeadlineSeconds | int | 3600 | The activeDeadlineSeconds applies to the duration of the job, no matter how many Pods are created. Once a Job reaches activeDeadlineSeconds, all of its running Pods are terminated. |
-| concurrencyPolicy | string | Allow | [concurrencyPolicy](https://kubernetes.io/docs/concepts/workloads/controllers/cron-jobs/#concurrency-policy) field specifies how to treat concurrent executions of a Job that is created by this CronJob. |
-| failedJobsHistoryLimit | int | 1 | [failedJobsHistoryLimit](https://kubernetes.io/docs/concepts/workloads/controllers/cron-jobs/#jobs-history-limits) field specifies the number of failed finished jobs to keep. Setting this field to 0 will not keep any failed jobs. |
-| image.digest | string | `nil` | Image digest |
-| image.imagePullPolicy | string | `"Always"` |  |
-| image.repositoryPrefix | string | `nil` | Image repository |
-| image.tag | string | `nil` | Image tag |
-| name | string | `nil` | Name of the service that will be deployed on K8s cluster |
-| namespace | string | `nil` | Namespace hosting the service that will be deployed on K8s cluster |
-| replicas | int | 1 | Number of desired replicas for the service being deployed |
-| resources | object | `{"limits":{"cpu":null,"mem":null},"requests":{"cpu":null,"mem":null}}` | K8s container resources requests and limits |
-| restartPolicy | string | `"OnFailure"` |  |
-| roleArn | string | `nil` | ServiceAccount roleARN used for eks.amazonaws.com/role-arn annotation |
-| schedule | string | `nil` | The [schedule](https://kubernetes.io/docs/concepts/workloads/controllers/cron-jobs/#schedule-syntax) field is required. The value of that field follows the [Cron](https://en.wikipedia.org/wiki/Cron) syntax. |
-| successfulJobsHistoryLimit | int | 0 | [successfulJobsHistoryLimit](https://kubernetes.io/docs/concepts/workloads/controllers/cron-jobs/#jobs-history-limits) field specifies the number of successful finished jobs to keep. Setting this field to 0 will not keep any successful jobs |
-| suspend | boolean | `false` | [suspend](https://kubernetes.io/docs/concepts/workloads/controllers/cron-jobs/#schedule-suspension) field allows to suspend execution of Jobs for a CronJob.   @default -- false. |
-| techStack | enum | `nil` | Defines the technology used to develop the container. The following values are allowed: [ "nodejs", "scala"] |
+{{ template "chart.valuesTable" . }}
+
 
 ## 1. Configurazione di Cronjob
 
@@ -78,6 +61,7 @@ env:
 
 Non c'è limite al numero di variabili d'ambiente configurabili nella sezione "configmap".
 
+
 #### 1.1.2. <ins>envFromConfigmaps - Referenziare una ConfigMap esterna</ins>
 
 Per referenziare una chiave da una ConfigMap esterna, è necessario aggiungere una coppia chiave/valore nel blocco "deployment.envFromConfigmaps" nel file _values.yaml_ specifico per il Cronjob.
@@ -108,6 +92,7 @@ env:
 
 Non c'è limite al numero di variabili d'ambiente configurabili nella sezione "envFromConfigmaps".
 
+
 #### 1.1.3. <ins>envFromSecrets - Referenziare un Secret esterno</ins>
 
 Per referenziare una chiave da un Secret esterno è necessario aggiungere una coppia chiave/valore nel blocco "deployment.envFromSecrets" nel file _values.yaml_ specifico per il Cronjob.
@@ -136,6 +121,7 @@ sarà aggiunto un riferimento nel Cronjob nella sezione _env_:
 ```
 
 Non c'è limite al numero di variabili d'ambiente configurabili nella sezione "envFromSecrets".
+
 
 #### 1.1.4 <ins>env - Definire variabili d'ambiente custom</ins>
 

@@ -1,0 +1,112 @@
+{{ $root := . }}
+
+{{- $digestSuffix := "" }}
+{{- if and .Values.image .Values.image.digest }}
+{{- $digestSuffix = (nospace (cat "@" .Values.image.digest)) }}
+{{- end }}
+
+{{- $imageTag := "" }}
+{{- if .Values.image.tag }}
+{{- $imageTag = (nospace (cat ":" .Values.image.tag)) }}
+{{- end }}
+
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: {{ .Values.name | quote }}
+  namespace: {{ .Values.namespace }}
+  labels:
+    {{- include "interop-eks-cronjob-chart.labels" . | nindent 4 }}
+spec:
+  schedule: {{ .Values.schedule | quote }}
+  failedJobsHistoryLimit: {{ .Values.failedJobsHistoryLimit }} # K8s default is 1, , Chart default is 1
+  successfulJobsHistoryLimit: {{ .Values.successfulJobsHistoryLimit }} # K8s default is 3, Chart default is 0
+  {{- if .Values.concurrencyPolicy }} # K8s default is Allow
+  concurrencyPolicy: {{ .Values.concurrencyPolicy }}
+  {{- end }}
+  {{- if .Values.suspend }} # K8s default il false
+  suspend: {{ .Values.suspend }}
+  {{- end }}
+  jobTemplate:
+    metadata:
+      labels:
+        {{- include "interop-eks-cronjob-chart.labels" . | nindent 8 }}
+      annotations:
+        digest: "{{ .Values.image.digest }}" # Used to force deployment on same image version but different content
+    spec:
+      activeDeadlineSeconds: {{ .Values.activeDeadlineSeconds }} # Chart default 3600
+      template:
+        metadata:
+          labels:
+            {{- include "interop-eks-cronjob-chart.labels" . | nindent 12 }}
+        spec:
+          restartPolicy: {{ .Values.restartPolicy }}
+          serviceAccountName: {{ .Values.name | quote }}
+          containers:
+            - name: {{ .Values.name | quote }}
+              image: "{{ .Values.image.repositoryPrefix }}/{{ .Values.image.repositoryName | default .Values.name }}{{ $imageTag }}{{ $digestSuffix }}"
+              imagePullPolicy: {{ .Values.image.imagePullPolicy }}
+              {{- if and .Values.deployment .Values.deployment.command }}
+              command: {{ .Values.deployment.command }}
+              {{- else if eq .Values.techStack "scala" }}
+              command: ["bin/{{ .Values.name }}"]
+              {{- end }}
+              {{- if and .Values.deployment .Values.deployment.args }}
+              args: {{ .Values.deployment.args }}
+              {{- else if eq .Values.techStack "scala" }}
+              args: ["-Dconfig.override_with_env_vars=true"]
+              {{- end }}
+              env:
+                {{- if .Values.configmap }}
+                {{- range $key, $val := .Values.configmap }}
+                - name: {{ $key | quote }}
+                  valueFrom:
+                    configMapKeyRef:
+                      name: {{ $root.Values.name | quote }}
+                      key: {{ $key | quote }}
+                {{- end }}
+                {{- end }}
+                {{- if and .Values.deployment .Values.deployment.envFieldRef }}
+                {{- range $key, $val := .Values.deployment.envFieldRef }}
+                - name: {{ $key | quote }}
+                  valueFrom:
+                    fieldRef:
+                      fieldPath: {{ $val | quote }}
+                {{- end }}
+                {{- end }}
+                {{- if and .Values.deployment .Values.deployment.env }}
+                {{- range $key, $val := .Values.deployment.env }}
+                - name: {{ $key | quote }}
+                  value: {{ $val | quote }}
+                {{- end }}
+                {{- end }}
+                {{- if and .Values.deployment .Values.deployment.envFromConfigmaps }}
+                {{- range $key, $val := .Values.deployment.envFromConfigmaps -}}
+                {{ $configmapAddress := mustRegexSplit "\\." $val 2 }}
+                - name: {{ $key | quote }}
+                  valueFrom:
+                    configMapKeyRef:
+                      name: {{ index $configmapAddress 0 | quote }}
+                      key: {{ index $configmapAddress 1 | quote }}
+                {{- end }}
+                {{- end }}
+                {{- if and .Values.deployment .Values.deployment.envFromSecrets }}
+                {{- range $key, $val := .Values.deployment.envFromSecrets -}}
+                {{ $secretAddress := mustRegexSplit "\\." $val 2 }}
+                - name: {{ $key | quote }}
+                  valueFrom:
+                    secretKeyRef:
+                      name: {{ index $secretAddress 0 | quote }}
+                      key: {{ index $secretAddress 1 | quote }}
+                {{- end }}
+                {{- end }}
+              resources:
+                {{- toYaml .Values.resources | nindent 16 }}
+              {{- if and .Values.deployment .Values.deployment.volumeMounts }}
+              volumeMounts:
+                {{- toYaml .Values.deployment.volumeMounts | nindent 16 }}
+              {{- end }}
+          {{- if and .Values.deployment .Values.deployment.volumes }}
+          volumes:
+            {{- toYaml .Values.deployment.volumes | nindent 12 }}
+          {{- end }}

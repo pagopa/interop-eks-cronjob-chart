@@ -1,0 +1,75 @@
+{
+  "$schema": "https://json-schema.org/draft-07/schema#",
+  "properties": {
+
+    "image": {
+      "description": "Container Image",
+      "properties": {
+        "repositoryPrefix": {
+          "type": "string"
+        },
+        "imagePullPolicy": {
+          "type": "string"
+        }
+      },
+      "type": "object",
+      "required": [
+        "repositoryPrefix"
+      ]
+    },
+    "resources": {
+      "description": "Container Resources consumption",
+      "properties": {
+        "requests": {
+          "properties": {
+            "cpu": {
+              "type": "string"
+            },
+            "mem": {
+              "type": "string"
+            }
+          },
+          "type": "object"
+        },
+        "limits": {
+          "properties": {
+            "cpu": {
+              "type": "string"
+            },
+            "mem": {
+              "type": "string"
+            }
+          },
+          "type": "object"
+        }
+      },
+      "type": "object"
+    },
+    "techStack": {
+      "description": "Technology used to develop the service",
+      "type": "string",
+      "enum": [ "nodejs", "scala", "frontend"]
+    },
+    "name": {
+      "description": "Service name",
+      "type": "string"
+    },
+    "namespace": {
+      "description": "Kubernetes namespace",
+      "type": "string"
+    },
+    "schedule": {
+      "description": "Cronjob scheduling expression",
+      "type": "string"
+    }
+  },
+  "required": [
+    "name",
+    "namespace",
+    "resources",
+    "techStack",
+    "schedule"
+  ],
+  "title": "Values",
+  "type": "object"
+}
