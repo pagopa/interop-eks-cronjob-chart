@@ -44,8 +44,8 @@ image:
 resources:
   requests:
     cpu:
-    mem:
+    memory:
   limits:
     cpu:
-    mem:
+    memory:
 
