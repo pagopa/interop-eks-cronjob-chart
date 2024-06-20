@@ -47,7 +47,7 @@ app.kubernetes.io/version: {{ $imageTag }}
 app.kubernetes.io/version: {{ $digestSuffix }}
 {{ else if .Chart.AppVersion }}
 app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
-{{- end -}}
+{{- end }}
 app.kubernetes.io/managed-by: {{ .Release.Service }}
 {{- end }}
 
