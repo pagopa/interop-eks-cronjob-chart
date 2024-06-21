@@ -46,13 +46,13 @@ spec:
             - name: {{ .Values.name | quote }}
               image: "{{ .Values.image.repositoryPrefix }}/{{ .Values.image.repositoryName | default .Values.name }}{{ $imageTag }}{{ $digestSuffix }}"
               imagePullPolicy: {{ .Values.image.imagePullPolicy }}
-              {{- if and .Values.deployment .Values.deployment.command }}
-              command: {{ .Values.deployment.command }}
+              {{- if and .Values.job .Values.job.command }}
+              command: {{ .Values.job.command }}
               {{- else if eq .Values.techStack "scala" }}
               command: ["bin/{{ .Values.name }}"]
               {{- end }}
-              {{- if and .Values.deployment .Values.deployment.args }}
-              args: {{ .Values.deployment.args }}
+              {{- if and .Values.job .Values.job.args }}
+              args: {{ .Values.job.args }}
               {{- else if eq .Values.techStack "scala" }}
               args: ["-Dconfig.override_with_env_vars=true"]
               {{- end }}
@@ -66,22 +66,22 @@ spec:
                       key: {{ $key | quote }}
                 {{- end }}
                 {{- end }}
-                {{- if and .Values.deployment .Values.deployment.envFieldRef }}
-                {{- range $key, $val := .Values.deployment.envFieldRef }}
+                {{- if and .Values.job .Values.job.envFieldRef }}
+                {{- range $key, $val := .Values.job.envFieldRef }}
                 - name: {{ $key | quote }}
                   valueFrom:
                     fieldRef:
                       fieldPath: {{ $val | quote }}
                 {{- end }}
                 {{- end }}
-                {{- if and .Values.deployment .Values.deployment.env }}
-                {{- range $key, $val := .Values.deployment.env }}
+                {{- if and .Values.job .Values.job.env }}
+                {{- range $key, $val := .Values.job.env }}
                 - name: {{ $key | quote }}
                   value: {{ $val | quote }}
                 {{- end }}
                 {{- end }}
-                {{- if and .Values.deployment .Values.deployment.envFromConfigmaps }}
-                {{- range $key, $val := .Values.deployment.envFromConfigmaps -}}
+                {{- if and .Values.job .Values.job.envFromConfigmaps }}
+                {{- range $key, $val := .Values.job.envFromConfigmaps -}}
                 {{ $configmapAddress := mustRegexSplit "\\." $val 2 }}
                 - name: {{ $key | quote }}
                   valueFrom:
@@ -90,8 +90,8 @@ spec:
                       key: {{ index $configmapAddress 1 | quote }}
                 {{- end }}
                 {{- end }}
-                {{- if and .Values.deployment .Values.deployment.envFromSecrets }}
-                {{- range $key, $val := .Values.deployment.envFromSecrets -}}
+                {{- if and .Values.job .Values.job.envFromSecrets }}
+                {{- range $key, $val := .Values.job.envFromSecrets -}}
                 {{ $secretAddress := mustRegexSplit "\\." $val 2 }}
                 - name: {{ $key | quote }}
                   valueFrom:
@@ -102,11 +102,11 @@ spec:
                 {{- end }}
               resources:
                 {{- toYaml .Values.resources | nindent 16 }}
-              {{- if and .Values.deployment .Values.deployment.volumeMounts }}
+              {{- if and .Values.job .Values.job.volumeMounts }}
               volumeMounts:
-                {{- toYaml .Values.deployment.volumeMounts | nindent 16 }}
+                {{- toYaml .Values.job.volumeMounts | nindent 16 }}
               {{- end }}
-          {{- if and .Values.deployment .Values.deployment.volumes }}
+          {{- if and .Values.job .Values.job.volumes }}
           volumes:
-            {{- toYaml .Values.deployment.volumes | nindent 12 }}
+            {{- toYaml .Values.job.volumes | nindent 12 }}
           {{- end }}

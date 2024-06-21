@@ -1,7 +1,7 @@
 
 # interop-eks-cronjob-chart
 
-![Version: 0.1.0](https://img.shields.io/badge/Version-0.1.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 1.0.0](https://img.shields.io/badge/AppVersion-1.0.0-informational?style=flat-square)
+![Version: 1.0.3](https://img.shields.io/badge/Version-1.0.3-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 1.0.0](https://img.shields.io/badge/AppVersion-1.0.0-informational?style=flat-square)
 
 A Helm chart for PagoPa Interop CronJobs
 
@@ -21,7 +21,7 @@ The following table lists the configurable parameters of the Interop-eks-cronjob
 | name | string | `nil` | Name of the service that will be deployed on K8s cluster |
 | namespace | string | `nil` | Namespace hosting the service that will be deployed on K8s cluster |
 | replicas | int | 1 | Number of desired replicas for the service being deployed |
-| resources | object | `{"limits":{"cpu":null,"mem":null},"requests":{"cpu":null,"mem":null}}` | K8s container resources requests and limits |
+| resources | object | `{"limits":{"cpu":null,"memory":null},"requests":{"cpu":null,"memory":null}}` | K8s container resources requests and limits |
 | restartPolicy | string | `"OnFailure"` |  |
 | roleArn | string | `nil` | ServiceAccount roleARN used for eks.amazonaws.com/role-arn annotation |
 | schedule | string | `nil` | The [schedule](https://kubernetes.io/docs/concepts/workloads/controllers/cron-jobs/#schedule-syntax) field is required. The value of that field follows the [Cron](https://en.wikipedia.org/wiki/Cron) syntax. |
@@ -42,7 +42,7 @@ La coppia chiave/valore deve essere così definita:
 Dichiarando la sezione "configmap" nel file _values.yaml_ di uno specifico Cronjob saranno applicati i seguenti automatismi:
 * sarà creata una ConfigMap con lo stesso "name" del Cronjob;
 * il campo "data" di tale ConfigMap sarà popolato con tutti le coppie chiave/valore definite in "configmap"
-* nel Deployment sarà aggiunto nella sezione "env" un riferimento per ogni coppia chiave/valore definita nella ConfigMap del Cronjob
+* nella definizione del Cronjob sarà aggiunto nella sezione "env" un riferimento per ogni coppia chiave/valore definita nella ConfigMap del Cronjob
 
 Definendo la seguente configurazione d'esempio nel _values.yaml_ del Cronjob, ad esempio "dashboard-metrics-report-generator" per ambiente "qa":
 
@@ -80,7 +80,7 @@ Non c'è limite al numero di variabili d'ambiente configurabili nella sezione "c
 
 #### 1.1.2. <ins>envFromConfigmaps - Referenziare una ConfigMap esterna</ins>
 
-Per referenziare una chiave da una ConfigMap esterna, è necessario aggiungere una coppia chiave/valore nel blocco "deployment.envFromConfigmaps" nel file _values.yaml_ specifico per il Cronjob.
+Per referenziare una chiave da una ConfigMap esterna, è necessario aggiungere una coppia chiave/valore nel blocco "job.envFromConfigmaps" nel file _values.yaml_ specifico per il Cronjob.
 La coppia chiave/valore deve essere così definita:
 * Chiave: è mappata con il nome (name) della variabile d'ambiente utilizzata dal Cronjob
 * Valore: è composto da due valori separati dal carattere "."; il primo valore rappresenta il nome della ConfigMap esterna referenziata, il secondo valore è la chiave desiderata definita nella ConfigMap
@@ -90,7 +90,7 @@ Definendo la seguente configurazione d'esempio nel _values.yaml_ del Cronjob, ad
 ```
 # /jobs/dashboard-metrics-report-generator/qa/values.yaml
 
-deployment:
+job:
   envFromConfigmaps:
     CUSTOM_LABEL: "external-configmap-name.REFERENCED_LABEL"
 ```
@@ -110,7 +110,7 @@ Non c'è limite al numero di variabili d'ambiente configurabili nella sezione "e
 
 #### 1.1.3. <ins>envFromSecrets - Referenziare un Secret esterno</ins>
 
-Per referenziare una chiave da un Secret esterno è necessario aggiungere una coppia chiave/valore nel blocco "deployment.envFromSecrets" nel file _values.yaml_ specifico per il Cronjob.
+Per referenziare una chiave da un Secret esterno è necessario aggiungere una coppia chiave/valore nel blocco "job.envFromSecrets" nel file _values.yaml_ specifico per il Cronjob.
 La coppia chiave/valore deve essere così definita:
 * Chiave: è mappata con il nome (name) della variabile d'ambiente utilizzata dal Cronjob
 * Valore: è composto da due valori separati dal carattere "."; il primo valore rappresenta il nome del Secret esterno referenziato, il secondo valore è la chiave desiderata definita nel Secret
@@ -120,7 +120,7 @@ Definendo la seguente configurazione d'esempio nel _values.yaml_ del Cronjob, ad
 ```
 # /jobs/dashboard-metrics-report-generator/qa/values.yaml
 
-deployment:
+job:
   envFromSecrets:
     CUSTOM_LABEL: "external-secret-name.REFERENCED_LABEL"
 ```
@@ -139,13 +139,13 @@ Non c'è limite al numero di variabili d'ambiente configurabili nella sezione "e
 
 #### 1.1.4 <ins>env - Definire variabili d'ambiente custom</ins>
 
-Per definire una variabile d'ambiente custom per il Cronjob è necessario aggiungere una coppia chiave/valore nel blocco "deployment.env" nel file _values.yaml_ specifico per il Cronjob.
+Per definire una variabile d'ambiente custom per il Cronjob è necessario aggiungere una coppia chiave/valore nel blocco "job.env" nel file _values.yaml_ specifico per il Cronjob.
 Definendo la seguente configurazione d'esempio al file _values.yaml_ del Cronjob, ad esempio "dashboard-metrics-report-generator" per ambiente "qa":
 
 ```
 # /jobs/dashboard-metrics-report-generator/qa/values.yaml
 
-deployment:
+job:
   env:
     ENV_NAME: "ENV_VALUE"
 ```
@@ -163,12 +163,12 @@ Non c'è limite al numero di variabili d'ambiente configurabili nella sezione "e
 #### 1.1.5 <ins>envFieldRef - Referenziare informazioni del Pod</ins>
 
 Per esporre dei campi del Pod al runtime del container, è possibile utilizzare il campo "fieldRef", come da [documentazione](https://kubernetes.io/docs/concepts/workloads/pods/downward-api/#downwardapi-fieldRef) ufficiale Kubernetes.
-Un campo esposto con "fieldRef" può essere referenziato dal Deployment di un Cronjob, ad esempio "dashboard-metrics-report-generator" per ambiente "qa", inserendo la seguente configurazione nel file _values.yaml_ come segue:
+Un campo esposto con "fieldRef" può essere referenziato dal file di configurazione K8s di un Cronjob, ad esempio "dashboard-metrics-report-generator" per ambiente "qa", inserendo la seguente configurazione nel file _values.yaml_ come segue:
 
 ```
 # /jobs/dashboard-metrics-report-generator/qa/values.yaml
 
-deployment:
+job:
   envFieldRef:
     NAMESPACE: "metadata.namespace"
 ```
@@ -195,7 +195,7 @@ Seguendo la documentazione Kubernetes ufficiale in merito ai [Volumes](https://k
 ```
 # /jobs/dashboard-metrics-report-generator/qa/values.yaml
 
-deployment:
+job:
   volumes:
     - name: categories-index-volume
       emptyDir: {}
@@ -209,7 +209,7 @@ Per aggiungere un volumeMounts relativo ad un volume configurato, è necessario 
 ```
 # /jobs/dashboard-metrics-report-generator/qa/values.yaml
 
-deployment:
+job:
   volumeMounts:
     - name: categories-index-volume
       mountPath: /opt/docker/index/categories
