@@ -66,8 +66,8 @@ spec:
                       key: {{ $key | quote }}
                 {{- end }}
                 {{- end }}
-                {{- if and .Values.job .Values.job.envFieldRef }}
-                {{- range $key, $val := .Values.job.envFieldRef }}
+                {{- if and .Values.job .Values.job.envFromFieldRef }}
+                {{- range $key, $val := .Values.job.envFromFieldRef }}
                 - name: {{ $key | quote }}
                   valueFrom:
                     fieldRef:
