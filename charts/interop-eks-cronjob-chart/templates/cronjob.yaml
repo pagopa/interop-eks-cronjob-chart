@@ -76,8 +76,9 @@ spec:
                 {{- end }}
                 {{- if and .Values.job .Values.job.env }}
                 {{- range $key, $val := .Values.job.env }}
+                {{- $preprocessedEnvValue := include "interop-eks-cronjob-chart.render-template" (dict "value" $val "context" $) }}
                 - name: {{ $key | quote }}
-                  value: {{ $val | quote }}
+                  value: {{ $preprocessedEnvValue | quote }}
                 {{- end }}
                 {{- end }}
                 {{- if and .Values.job .Values.job.envFromConfigmaps }}
