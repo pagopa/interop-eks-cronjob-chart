@@ -69,31 +69,30 @@ Create the name of the service account to use
 {{- end }}
 {{- end }}
 
+
 {{/*
 Renders a value that contains template perhaps with scope if the scope is present.
 Usage:
-{{ include "common.tplvalues.render" ( dict "value" .Values.path.to.the.Value "context" $ ) }}
-{{ include "common.tplvalues.render" ( dict "value" .Values.path.to.the.Value "context" $ "scope" $app ) }}
+{{ include "interop-eks-cronjob-chart.render-template" ( dict "value" .Values.path.to.the.Value "context" $ ) }}
+{{ include "interop-eks-cronjob-chart.render-template" ( dict "value" .Values.path.to.the.Value "context" $ "scope" $app ) }}
 */}}
-{{- define "common.tplvalues.render" -}}
+{{- define "interop-eks-cronjob-chart.render-template" -}}
 {{- $value := typeIs "string" .value | ternary .value (.value | toYaml) }}
 {{- if contains "{{" (toJson .value) }}
   {{- if .scope }}
-    {{- tpl (cat "{{- with $.RelativeScope -}}" $value "{{- end }}") (merge (dict "RelativeScope" .scope) .context) }}
+    {{- $renderedValue := tpl (cat "{{- with $.RelativeScope -}}" $value "{{- end }}") (merge (dict "RelativeScope" .scope) .context) }}
+    {{- if or (eq $renderedValue nil) (eq $renderedValue "")  }}
+      {{ fail (printf "Error: %s must be set and non-empty" $renderedValue) }}
+    {{- end }}
+    {{- $renderedValue -}}
   {{- else }}
-    {{- tpl $value .context}}
+    {{- $renderedValue := tpl $value .context }}
+    {{- if or (eq $renderedValue nil) (eq $renderedValue "")  }}
+      {{ fail (printf "Error: %s must be set and non-empty" $renderedValue) }}
+    {{- end }}
+    {{- $renderedValue -}}
   {{- end }}
 {{- else }}
     {{ $value }}
-{{- end }}
 {{- end -}}
-
-{{- define "interop-eks-cronjob-chart.render-template" -}}
-    {{- if kindIs "string" .value }}
-        {{- if contains "{{_local" (toJson .value) }}
-            {{- include "common.tplvalues.render" ( dict "value" (.value | replace "{{_local" "{{.Values._local")  "context" .context) }}
-        {{- else }}
-            {{ .value }}
-        {{- end -}}
-    {{- end -}}
 {{- end -}}
