@@ -48,13 +48,9 @@ spec:
               imagePullPolicy: {{ .Values.image.imagePullPolicy }}
               {{- if and .Values.job .Values.job.command }}
               command: {{ .Values.job.command }}
-              {{- else if eq .Values.techStack "scala" }}
-              command: ["bin/{{ .Values.name }}"]
               {{- end }}
               {{- if and .Values.job .Values.job.args }}
               args: {{ .Values.job.args }}
-              {{- else if eq .Values.techStack "scala" }}
-              args: ["-Dconfig.override_with_env_vars=true"]
               {{- end }}
               env:
                 {{- if .Values.configmap }}

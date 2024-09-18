@@ -9,7 +9,7 @@ namespace:
 replicas: 
 # -- (string) ServiceAccount roleARN used for eks.amazonaws.com/role-arn annotation
 roleArn:
-# -- (enum) Defines the technology used to develop the container. The following values are allowed: [ "nodejs", "scala"]
+# -- (enum) Defines the technology used to develop the container. The following values are allowed: [ "nodejs" ]
 techStack: 
 
 # -- [failedJobsHistoryLimit](https://kubernetes.io/docs/concepts/workloads/controllers/cron-jobs/#jobs-history-limits) field specifies the number of failed finished jobs to keep. Setting this field to 0 will not keep any failed jobs.
