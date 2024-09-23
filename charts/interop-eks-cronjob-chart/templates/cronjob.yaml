@@ -48,13 +48,9 @@ spec:
               imagePullPolicy: {{ .Values.image.imagePullPolicy }}
               {{- if and .Values.job .Values.job.command }}
               command: {{ .Values.job.command }}
-              {{- else if eq .Values.techStack "scala" }}
-              command: ["bin/{{ .Values.name }}"]
               {{- end }}
               {{- if and .Values.job .Values.job.args }}
               args: {{ .Values.job.args }}
-              {{- else if eq .Values.techStack "scala" }}
-              args: ["-Dconfig.override_with_env_vars=true"]
               {{- end }}
               env:
                 {{- if .Values.configmap }}
@@ -76,8 +72,9 @@ spec:
                 {{- end }}
                 {{- if and .Values.job .Values.job.env }}
                 {{- range $key, $val := .Values.job.env }}
+                {{- $preprocessedEnvValue := include "interop-eks-cronjob-chart.render-template" (dict "value" $val "context" $) }}
                 - name: {{ $key | quote }}
-                  value: {{ $val | quote }}
+                  value: {{ $preprocessedEnvValue | quote }}
                 {{- end }}
                 {{- end }}
                 {{- if and .Values.job .Values.job.envFromConfigmaps }}

@@ -31,7 +31,7 @@ The following table lists the configurable parameters of the Interop-eks-cronjob
 | schedule | string | `nil` | The [schedule](https://kubernetes.io/docs/concepts/workloads/controllers/cron-jobs/#schedule-syntax) field is required. The value of that field follows the [Cron](https://en.wikipedia.org/wiki/Cron) syntax. |
 | successfulJobsHistoryLimit | int | 0 | [successfulJobsHistoryLimit](https://kubernetes.io/docs/concepts/workloads/controllers/cron-jobs/#jobs-history-limits) field specifies the number of successful finished jobs to keep. Setting this field to 0 will not keep any successful jobs |
 | suspend | boolean | `false` | [suspend](https://kubernetes.io/docs/concepts/workloads/controllers/cron-jobs/#schedule-suspension) field allows to suspend execution of Jobs for a CronJob.   @default -- false. |
-| techStack | enum | `nil` | Defines the technology used to develop the container. The following values are allowed: [ "nodejs", "scala"] |
+| techStack | enum | `nil` | Defines the technology used to develop the container. The following values are allowed: [ "nodejs" ] |
 
 ## 1. Configurazione di Cronjob
 
