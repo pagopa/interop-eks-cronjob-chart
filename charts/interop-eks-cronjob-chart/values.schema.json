@@ -45,6 +45,11 @@
       },
       "type": "object"
     },
+    "techStack": {
+      "description": "Technology used to develop the service",
+      "type": "string",
+      "enum": [ "nodejs" ]
+    },
     "name": {
       "description": "Service name",
       "type": "string"
@@ -62,6 +67,7 @@
     "name",
     "namespace",
     "resources",
+    "techStack",
     "schedule"
   ],
   "title": "Values",
