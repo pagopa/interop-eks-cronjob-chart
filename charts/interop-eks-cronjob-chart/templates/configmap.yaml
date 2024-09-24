@@ -6,6 +6,6 @@ metadata:
   namespace: {{ .Values.namespace }}
 data:
   {{- range $key, $val := .Values.configmap }}
-  {{ $key }}: {{ include "interop-eks-cronjob-chart.render-template" (dict "value" $val "context" $) }} 
+  {{ $key }}: {{ include "interop-eks-cronjob-chart.render-template" (dict "value" $val "context" $) | quote }} 
   {{- end }}
 {{- end }}
