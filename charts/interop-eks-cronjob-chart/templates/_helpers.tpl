@@ -37,13 +37,13 @@ Common labels
 app.kubernetes.io/name: {{ .Values.name }}
 helm.sh/chart: {{ include "interop-eks-cronjob-chart.chart" . }}
 {{ include "interop-eks-cronjob-chart.selectorLabels" . }}
-{{- if .Values.image.tag }}
+{{- if .Values.cronjob.image.tag }}
 {{- $imageTag := "" }}
-{{- $imageTag = (nospace .Values.image.tag) }}
+{{- $imageTag = (nospace .Values.cronjob.image.tag) }}
 app.kubernetes.io/version: {{ $imageTag }}
-{{ else if .Values.image.digest }}
+{{ else if .Values.cronjob.image.digest }}
 {{- $digestSuffix := "" }}
-{{- $digestSuffix = (nospace .Values.image.digest) }}
+{{- $digestSuffix = (nospace .Values.cronjob.image.digest) }}
 app.kubernetes.io/version: {{ $digestSuffix }}
 {{ else if .Chart.AppVersion }}
 app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}

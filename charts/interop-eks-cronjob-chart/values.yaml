@@ -4,43 +4,46 @@
 name:
 # -- Namespace hosting the service that will be deployed on K8s cluster
 namespace:
-# -- (int) Number of desired replicas for the service being deployed
-# @default -- 1
-replicas: 
-# -- (string) ServiceAccount roleARN used for eks.amazonaws.com/role-arn annotation
-roleArn:
-# -- (enum) Defines the technology used to develop the container. The following values are allowed: [ "nodejs" ]
-techStack: 
 
-# -- [failedJobsHistoryLimit](https://kubernetes.io/docs/concepts/workloads/controllers/cron-jobs/#jobs-history-limits) field specifies the number of failed finished jobs to keep. Setting this field to 0 will not keep any failed jobs.
-# @default -- 1
-failedJobsHistoryLimit: 1
-# -- [successfulJobsHistoryLimit](https://kubernetes.io/docs/concepts/workloads/controllers/cron-jobs/#jobs-history-limits) field specifies the number of successful finished jobs to keep. Setting this field to 0 will not keep any successful jobs
-# @default -- 0
-successfulJobsHistoryLimit: 0
-# -- (boolean) [suspend](https://kubernetes.io/docs/concepts/workloads/controllers/cron-jobs/#schedule-suspension) field allows to suspend execution of Jobs for a CronJob. 
-# @default -- false.
-suspend: false
-# -- (int) The activeDeadlineSeconds applies to the duration of the job, no matter how many Pods are created. Once a Job reaches activeDeadlineSeconds, all of its running Pods are terminated.
-# @default -- 3600
-activeDeadlineSeconds: 3600
-# -- (string) The [schedule](https://kubernetes.io/docs/concepts/workloads/controllers/cron-jobs/#schedule-syntax) field is required. The value of that field follows the [Cron](https://en.wikipedia.org/wiki/Cron) syntax.
-schedule: 
-# -- (string) [concurrencyPolicy](https://kubernetes.io/docs/concepts/workloads/controllers/cron-jobs/#concurrency-policy) field specifies how to treat concurrent executions of a Job that is created by this CronJob.
-# @default -- Allow
-concurrencyPolicy: 
-restartPolicy: OnFailure
+serviceAccount:
+  # -- (string) ServiceAccount roleARN used for eks.amazonaws.com/role-arn annotation
+  roleArn:
 
-image:
-  imagePullPolicy: Always
-  # -- (string) Image repository
-  repositoryPrefix:
-  # -- (string) Image tag
-  tag:
-  # -- (string) Image digest
-  digest:
-
-job:
+cronjob:
+  image:
+    imagePullPolicy: Always
+    # -- (string) Image repository
+    repositoryPrefix:
+    # -- (string) Image tag
+    tag:
+    # -- (string) Image digest
+    digest:
+  # -- K8s container resources requests and limits
+  resources:
+    requests:
+      cpu:
+      memory:
+    limits:
+      cpu:
+      memory:
+  # -- [failedJobsHistoryLimit](https://kubernetes.io/docs/concepts/workloads/controllers/cron-jobs/#jobs-history-limits) field specifies the number of failed finished jobs to keep. Setting this field to 0 will not keep any failed jobs.
+  # @default -- 1
+  failedJobsHistoryLimit: 1
+  # -- [successfulJobsHistoryLimit](https://kubernetes.io/docs/concepts/workloads/controllers/cron-jobs/#jobs-history-limits) field specifies the number of successful finished jobs to keep. Setting this field to 0 will not keep any successful jobs
+  # @default -- 0
+  successfulJobsHistoryLimit: 0
+  # -- (boolean) [suspend](https://kubernetes.io/docs/concepts/workloads/controllers/cron-jobs/#schedule-suspension) field allows to suspend execution of Jobs for a CronJob. 
+  # @default -- false.
+  suspend: false
+  # -- (int) The activeDeadlineSeconds applies to the duration of the job, no matter how many Pods are created. Once a Job reaches activeDeadlineSeconds, all of its running Pods are terminated.
+  # @default -- 3600
+  activeDeadlineSeconds: 3600
+  # -- (string) The [schedule](https://kubernetes.io/docs/concepts/workloads/controllers/cron-jobs/#schedule-syntax) field is required. The value of that field follows the [Cron](https://en.wikipedia.org/wiki/Cron) syntax.
+  schedule: 
+  # -- (string) [concurrencyPolicy](https://kubernetes.io/docs/concepts/workloads/controllers/cron-jobs/#concurrency-policy) field specifies how to treat concurrent executions of a Job that is created by this CronJob.
+  # @default -- Allow
+  concurrencyPolicy: 
+  restartPolicy: OnFailure
   # -- (object) List of environment variables for a container, specifying a value directly for each named variable
   env: 
   # -- (object) List of environment variables for a container, specifying a key from a Configmap for each named variable (k8s equivalent of envFrom.configMapRef)
@@ -49,13 +52,3 @@ job:
   envFromSecrets: 
   # -- (object) List of pod fields used as values for environment variablesenvironment variables for a container, specifying a key from a Secret for each named variable (k8s equivalent of env.valueFrom.fieldRef.fieldPath)
   envFromFieldRef:
-
-# -- K8s container resources requests and limits
-resources:
-  requests:
-    cpu:
-    memory:
-  limits:
-    cpu:
-    memory:
-
