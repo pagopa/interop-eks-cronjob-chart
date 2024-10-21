@@ -25,7 +25,11 @@ suspend: false
 # @default -- 3600
 activeDeadlineSeconds: 3600
 # -- (string) The [schedule](https://kubernetes.io/docs/concepts/workloads/controllers/cron-jobs/#schedule-syntax) field is required. The value of that field follows the [Cron](https://en.wikipedia.org/wiki/Cron) syntax.
-schedule: 
+schedule:
+
+# -- (string) [Time zone](https://kubernetes.io/docs/concepts/workloads/controllers/cron-jobs/#time-zones) to use when calculating schedule
+timeZone:
+
 # -- (string) [concurrencyPolicy](https://kubernetes.io/docs/concepts/workloads/controllers/cron-jobs/#concurrency-policy) field specifies how to treat concurrent executions of a Job that is created by this CronJob.
 # @default -- Allow
 concurrencyPolicy: 

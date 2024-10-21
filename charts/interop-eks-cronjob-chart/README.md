@@ -1,7 +1,7 @@
 
 # interop-eks-cronjob-chart
 
-![Version: 1.0.3](https://img.shields.io/badge/Version-1.0.3-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 1.0.0](https://img.shields.io/badge/AppVersion-1.0.0-informational?style=flat-square)
+![Version: 1.3.2](https://img.shields.io/badge/Version-1.3.2-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 1.0.0](https://img.shields.io/badge/AppVersion-1.0.0-informational?style=flat-square)
 
 A Helm chart for PagoPa Interop CronJobs
 
@@ -32,6 +32,7 @@ The following table lists the configurable parameters of the Interop-eks-cronjob
 | successfulJobsHistoryLimit | int | 0 | [successfulJobsHistoryLimit](https://kubernetes.io/docs/concepts/workloads/controllers/cron-jobs/#jobs-history-limits) field specifies the number of successful finished jobs to keep. Setting this field to 0 will not keep any successful jobs |
 | suspend | boolean | `false` | [suspend](https://kubernetes.io/docs/concepts/workloads/controllers/cron-jobs/#schedule-suspension) field allows to suspend execution of Jobs for a CronJob.   @default -- false. |
 | techStack | enum | `nil` | Defines the technology used to develop the container. The following values are allowed: [ "nodejs" ] |
+| timeZone | string | `nil` | [Time zone](https://kubernetes.io/docs/concepts/workloads/controllers/cron-jobs/#time-zones) to use when calculating schedule |
 
 ## 1. Configurazione di Cronjob
 

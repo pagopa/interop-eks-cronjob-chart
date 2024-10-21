@@ -19,6 +19,7 @@ metadata:
     {{- include "interop-eks-cronjob-chart.labels" . | nindent 4 }}
 spec:
   schedule: {{ .Values.schedule | quote }}
+  timeZone: {{ .Values.timeZone | quote }}
   failedJobsHistoryLimit: {{ .Values.failedJobsHistoryLimit }} # K8s default is 1, , Chart default is 1
   successfulJobsHistoryLimit: {{ .Values.successfulJobsHistoryLimit }} # K8s default is 3, Chart default is 0
   {{- if .Values.concurrencyPolicy }} # K8s default is Allow
