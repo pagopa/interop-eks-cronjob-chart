@@ -1,13 +1,13 @@
 {{ $root := . }}
 
 {{- $digestSuffix := "" }}
-{{- if and .Values.image .Values.image.digest }}
-{{- $digestSuffix = (nospace (cat "@" .Values.image.digest)) }}
+{{- if and .Values.cronjob.image .Values.cronjob.image.digest }}
+{{- $digestSuffix = (nospace (cat "@" .Values.cronjob.image.digest)) }}
 {{- end }}
 
 {{- $imageTag := "" }}
-{{- if .Values.image.tag }}
-{{- $imageTag = (nospace (cat ":" .Values.image.tag)) }}
+{{- if .Values.cronjob.image.tag }}
+{{- $imageTag = (nospace (cat ":" .Values.cronjob.image.tag)) }}
 {{- end }}
 
 apiVersion: batch/v1
@@ -18,12 +18,12 @@ metadata:
   labels:
     {{- include "interop-eks-cronjob-chart.labels" . | nindent 4 }}
 spec:
-  schedule: {{ .Values.schedule | quote }}
-  timeZone: {{ .Values.timeZone | quote }}
-  failedJobsHistoryLimit: {{ .Values.failedJobsHistoryLimit }} # K8s default is 1, , Chart default is 1
-  successfulJobsHistoryLimit: {{ .Values.successfulJobsHistoryLimit }} # K8s default is 3, Chart default is 0
-  {{- if .Values.concurrencyPolicy }} # K8s default is Allow
-  concurrencyPolicy: {{ .Values.concurrencyPolicy }}
+  schedule: {{ .Values.cronjob.schedule | quote }}
+  timeZone: {{ .Values.cronjob.timeZone | quote }}
+  failedJobsHistoryLimit: {{ .Values.cronjob.failedJobsHistoryLimit }} # K8s default is 1, , Chart default is 1
+  successfulJobsHistoryLimit: {{ .Values.cronjob.successfulJobsHistoryLimit }} # K8s default is 3, Chart default is 0
+  {{- if .Values.cronjob.concurrencyPolicy }} # K8s default is Allow
+  concurrencyPolicy: {{ .Values.cronjob.concurrencyPolicy }}
   {{- end }}
   {{- if .Values.suspend }} # K8s default il false
   suspend: {{ .Values.suspend }}
@@ -33,25 +33,29 @@ spec:
       labels:
         {{- include "interop-eks-cronjob-chart.labels" . | nindent 8 }}
       annotations:
-        digest: "{{ .Values.image.digest }}" # Used to force deployment on same image version but different content
+        digest: "{{ .Values.cronjob.image.digest }}" # Used to force deployment on same image version but different content
     spec:
-      activeDeadlineSeconds: {{ .Values.activeDeadlineSeconds }} # Chart default 3600
+      activeDeadlineSeconds: {{ .Values.cronjob.activeDeadlineSeconds }} # Chart default 3600
       template:
         metadata:
           labels:
             {{- include "interop-eks-cronjob-chart.labels" . | nindent 12 }}
         spec:
-          restartPolicy: {{ .Values.restartPolicy }}
+          restartPolicy: {{ .Values.cronjob.restartPolicy }}
           serviceAccountName: {{ .Values.name | quote }}
           containers:
             - name: {{ .Values.name | quote }}
-              image: "{{ .Values.image.repositoryPrefix }}/{{ .Values.image.repositoryName | default .Values.name }}{{ $imageTag }}{{ $digestSuffix }}"
-              imagePullPolicy: {{ .Values.image.imagePullPolicy }}
-              {{- if and .Values.job .Values.job.command }}
-              command: {{ .Values.job.command }}
+              image: "{{ .Values.cronjob.image.repositoryPrefix }}/{{ .Values.cronjob.image.repositoryName | default .Values.name }}{{ $imageTag }}{{ $digestSuffix }}"
+              imagePullPolicy: {{ .Values.cronjob.image.imagePullPolicy }}
+              {{- if and .Values.cronjob .Values.cronjob.command }}
+              command: {{ .Values.cronjob.command }}
               {{- end }}
-              {{- if and .Values.job .Values.job.args }}
-              args: {{ .Values.job.args }}
+              {{- if and .Values.cronjob .Values.cronjob.args }}
+              args: {{ .Values.cronjob.args }}
+              {{- end }}
+              {{- if .Values.cronjob.securityContext }}
+              securityContext:
+                {{- toYaml .Values.cronjob.securityContext | nindent 12 }}
               {{- end }}
               env:
                 {{- if .Values.configmap }}
@@ -63,23 +67,23 @@ spec:
                       key: {{ $key | quote }}
                 {{- end }}
                 {{- end }}
-                {{- if and .Values.job .Values.job.envFromFieldRef }}
-                {{- range $key, $val := .Values.job.envFromFieldRef }}
+                {{- if and .Values.cronjob .Values.cronjob.envFromFieldRef }}
+                {{- range $key, $val := .Values.cronjob.envFromFieldRef }}
                 - name: {{ $key | quote }}
                   valueFrom:
                     fieldRef:
                       fieldPath: {{ $val | quote }}
                 {{- end }}
                 {{- end }}
-                {{- if and .Values.job .Values.job.env }}
-                {{- range $key, $val := .Values.job.env }}
+                {{- if and .Values.cronjob .Values.cronjob.env }}
+                {{- range $key, $val := .Values.cronjob.env }}
                 {{- $preprocessedEnvValue := include "interop-eks-cronjob-chart.render-template" (dict "value" $val "context" $) }}
                 - name: {{ $key | quote }}
                   value: {{ $preprocessedEnvValue | quote }}
                 {{- end }}
                 {{- end }}
-                {{- if and .Values.job .Values.job.envFromConfigmaps }}
-                {{- range $key, $val := .Values.job.envFromConfigmaps -}}
+                {{- if and .Values.cronjob .Values.cronjob.envFromConfigmaps }}
+                {{- range $key, $val := .Values.cronjob.envFromConfigmaps -}}
                 {{ $configmapAddress := mustRegexSplit "\\." $val 2 }}
                 - name: {{ $key | quote }}
                   valueFrom:
@@ -88,8 +92,8 @@ spec:
                       key: {{ index $configmapAddress 1 | quote }}
                 {{- end }}
                 {{- end }}
-                {{- if and .Values.job .Values.job.envFromSecrets }}
-                {{- range $key, $val := .Values.job.envFromSecrets -}}
+                {{- if and .Values.cronjob .Values.cronjob.envFromSecrets }}
+                {{- range $key, $val := .Values.cronjob.envFromSecrets -}}
                 {{ $secretAddress := mustRegexSplit "\\." $val 2 }}
                 - name: {{ $key | quote }}
                   valueFrom:
@@ -99,12 +103,12 @@ spec:
                 {{- end }}
                 {{- end }}
               resources:
-                {{- toYaml .Values.resources | nindent 16 }}
-              {{- if and .Values.job .Values.job.volumeMounts }}
+                {{- toYaml .Values.cronjob.resources | nindent 16 }}
+              {{- if and .Values.cronjob .Values.cronjob.volumeMounts }}
               volumeMounts:
-                {{- toYaml .Values.job.volumeMounts | nindent 16 }}
+                {{- toYaml .Values.cronjob.volumeMounts | nindent 16 }}
               {{- end }}
-          {{- if and .Values.job .Values.job.volumes }}
+          {{- if and .Values.cronjob .Values.cronjob.volumes }}
           volumes:
-            {{- toYaml .Values.job.volumes | nindent 12 }}
+            {{- toYaml .Values.cronjob.volumes | nindent 12 }}
           {{- end }}
