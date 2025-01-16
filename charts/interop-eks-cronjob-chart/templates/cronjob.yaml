@@ -33,7 +33,9 @@ spec:
       labels:
         {{- include "interop-eks-cronjob-chart.labels" . | nindent 8 }}
       annotations:
-        digest: "{{ .Values.cronjob.image.digest }}" # Used to force deployment on same image version but different content
+        {{- if .Values.deployment.image.digest }}
+        digest: {{ .Values.cronjob.image.digest | quote }} # Used to force deployment on same image version but different content
+        {{- end }}
     spec:
       activeDeadlineSeconds: {{ .Values.cronjob.activeDeadlineSeconds }} # Chart default 3600
       template:
