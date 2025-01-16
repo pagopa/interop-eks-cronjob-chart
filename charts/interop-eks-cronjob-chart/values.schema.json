@@ -1,49 +1,59 @@
 {
   "$schema": "https://json-schema.org/draft-07/schema#",
   "properties": {
-
-    "image": {
-      "description": "Container Image",
-      "properties": {
-        "repositoryPrefix": {
-          "type": "string"
+    "cronjob": {
+      "image": {
+        "description": "Container Image",
+        "properties": {
+          "repositoryPrefix": {
+            "type": "string"
+          },
+          "imagePullPolicy": {
+            "type": "string"
+          }
         },
-        "imagePullPolicy": {
-          "type": "string"
-        }
+        "type": "object",
+        "required": [
+          "repositoryPrefix"
+        ]
+      },
+      "resources": {
+        "description": "Container Resources consumption",
+        "properties": {
+          "requests": {
+            "properties": {
+              "cpu": {
+                "type": "string"
+              },
+              "memory": {
+                "type": "string"
+              }
+            },
+            "type": "object"
+          },
+          "limits": {
+            "properties": {
+              "cpu": {
+                "type": "string"
+              },
+              "memory": {
+                "type": "string"
+              }
+            },
+            "type": "object"
+          }
+        },
+        "type": "object"
+      },
+      "schedule": {
+        "description": "Cronjob scheduling expression",
+        "type": "string"
       },
       "type": "object",
       "required": [
-        "repositoryPrefix"
+        "resources",
+        "schedule"
       ]
-    },
-    "resources": {
-      "description": "Container Resources consumption",
-      "properties": {
-        "requests": {
-          "properties": {
-            "cpu": {
-              "type": "string"
-            },
-            "memory": {
-              "type": "string"
-            }
-          },
-          "type": "object"
-        },
-        "limits": {
-          "properties": {
-            "cpu": {
-              "type": "string"
-            },
-            "memory": {
-              "type": "string"
-            }
-          },
-          "type": "object"
-        }
-      },
-      "type": "object"
     },
     "name": {
       "description": "Service name",
@@ -52,17 +62,11 @@
     "namespace": {
       "description": "Kubernetes namespace",
       "type": "string"
-    },
-    "schedule": {
-      "description": "Cronjob scheduling expression",
-      "type": "string"
     }
   },
   "required": [
     "name",
-    "namespace",
-    "resources",
-    "schedule"
+    "namespace"
   ],
   "title": "Values",
   "type": "object"
