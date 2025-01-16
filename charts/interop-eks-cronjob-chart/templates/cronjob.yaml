@@ -25,9 +25,7 @@ spec:
   {{- if .Values.cronjob.concurrencyPolicy }} # K8s default is Allow
   concurrencyPolicy: {{ .Values.cronjob.concurrencyPolicy }}
   {{- end }}
-  {{- if .Values.cronjob.suspend }} # K8s default il false
   suspend: {{ .Values.cronjob.suspend }}
-  {{- end }}
   jobTemplate:
     metadata:
       labels:
