@@ -26,6 +26,9 @@ cronjob:
     limits:
       cpu:
       memory:
+  # -- [automountServiceAccountToken](https://kubernetes.io/docs/tasks/configure-pod-container/configure-service-account/#use-the-default-service-account-to-access-the-api-server)
+  # @default -- true
+  automountServiceAccountToken: true
   # -- [failedJobsHistoryLimit](https://kubernetes.io/docs/concepts/workloads/controllers/cron-jobs/#jobs-history-limits) field specifies the number of failed finished jobs to keep. Setting this field to 0 will not keep any failed jobs.
   # @default -- 1
   failedJobsHistoryLimit: 1

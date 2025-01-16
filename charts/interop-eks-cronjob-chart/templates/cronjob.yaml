@@ -25,15 +25,15 @@ spec:
   {{- if .Values.cronjob.concurrencyPolicy }} # K8s default is Allow
   concurrencyPolicy: {{ .Values.cronjob.concurrencyPolicy }}
   {{- end }}
-  {{- if .Values.suspend }} # K8s default il false
-  suspend: {{ .Values.suspend }}
-  {{- end }}
+  suspend: {{ .Values.cronjob.suspend }}
   jobTemplate:
     metadata:
       labels:
         {{- include "interop-eks-cronjob-chart.labels" . | nindent 8 }}
       annotations:
-        digest: "{{ .Values.cronjob.image.digest }}" # Used to force deployment on same image version but different content
+        {{- if .Values.cronjob.image.digest }}
+        digest: {{ .Values.cronjob.image.digest | quote }} # Used to force deployment on same image version but different content
+        {{- end }}
     spec:
       activeDeadlineSeconds: {{ .Values.cronjob.activeDeadlineSeconds }} # Chart default 3600
       template:
@@ -41,6 +41,7 @@ spec:
           labels:
             {{- include "interop-eks-cronjob-chart.labels" . | nindent 12 }}
         spec:
+          automountServiceAccountToken: {{ .Values.cronjob.automountServiceAccountToken }}
           restartPolicy: {{ .Values.cronjob.restartPolicy }}
           serviceAccountName: {{ .Values.name | quote }}
           containers:
