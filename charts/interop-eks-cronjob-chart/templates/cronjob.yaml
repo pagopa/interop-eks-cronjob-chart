@@ -10,6 +10,10 @@
 {{- $imageTag = (nospace (cat ":" .Values.cronjob.image.tag)) }}
 {{- end }}
 
+{{- if and (not $imageTag) (not $digestSuffix)}}
+{{ fail "One of cronjob.image.tag and cronjob.image.digest must be defined." }}
+{{- end }}
+
 apiVersion: batch/v1
 kind: CronJob
 metadata:

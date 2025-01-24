@@ -10,10 +10,14 @@ serviceAccount:
   roleArn:
 
 cronjob:
+  # -- (object) Cronjob image configuration
   image:
+    # -- (string) Image pull policy
     imagePullPolicy: Always
     # -- (string) Image repository
     repositoryPrefix:
+    # -- (string) Alternative image name
+    repositoryName:
     # -- (string) Image tag
     tag:
     # -- (string) Image digest
