@@ -34,10 +34,3 @@ jobs:
       - name: Run pre-commit
         run: |
           pre-commit run --all-files
-
-      - name: Check if docs changed
-        run: |
-          if [[ -n "$(git status --porcelain)" ]]; then
-            echo "Docs are not up to date.
-            exit 1
-          fi
