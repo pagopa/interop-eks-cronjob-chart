@@ -30,7 +30,7 @@ jobs:
       - name: Run pre-commit version
         run: |
           pre-commit --version
-      
+
       - name: Run pre-commit
         run: |
           pre-commit run --all-files
