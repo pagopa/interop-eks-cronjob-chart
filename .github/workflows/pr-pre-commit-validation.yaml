@@ -3,7 +3,7 @@ name: 'pr-pre-commit-validation'
 on:
   push:
     branches:
-      - "GF_Add-pre-commit"
+      - "GF_Add_pre-commit"
   pull_request_target:
     types:
       - opened
