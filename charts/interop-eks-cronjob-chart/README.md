@@ -1,7 +1,7 @@
 
 # interop-eks-cronjob-chart
 
-![Version: 1.5.1](https://img.shields.io/badge/Version-1.5.1-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 1.0.0](https://img.shields.io/badge/AppVersion-1.0.0-informational?style=flat-square)
+![Version: 1.6.0](https://img.shields.io/badge/Version-1.6.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 1.0.0](https://img.shields.io/badge/AppVersion-1.0.0-informational?style=flat-square)
 
 A Helm chart for PagoPa Interop CronJobs
 
@@ -21,6 +21,7 @@ The following table lists the configurable parameters of the Interop-eks-cronjob
 | cronjob.failedJobsHistoryLimit | int | 1 | [failedJobsHistoryLimit](https://kubernetes.io/docs/concepts/workloads/controllers/cron-jobs/#jobs-history-limits) field specifies the number of failed finished jobs to keep. Setting this field to 0 will not keep any failed jobs. |
 | cronjob.image | object | `{"digest":null,"imagePullPolicy":"Always","repositoryName":null,"repositoryPrefix":null,"tag":null}` | Cronjob image configuration |
 | cronjob.image.digest | string | `nil` | Image digest |
+| cronjob.image.imagePullPolicy | string | `"Always"` | Image pull policy |
 | cronjob.image.repositoryName | string | `nil` | Alternative image name |
 | cronjob.image.repositoryPrefix | string | `nil` | Image repository |
 | cronjob.image.tag | string | `nil` | Image tag |
@@ -28,7 +29,7 @@ The following table lists the configurable parameters of the Interop-eks-cronjob
 | cronjob.restartPolicy | string | `"OnFailure"` |  |
 | cronjob.schedule | string | `nil` | The [schedule](https://kubernetes.io/docs/concepts/workloads/controllers/cron-jobs/#schedule-syntax) field is required. The value of that field follows the [Cron](https://en.wikipedia.org/wiki/Cron) syntax. |
 | cronjob.successfulJobsHistoryLimit | int | 0 | [successfulJobsHistoryLimit](https://kubernetes.io/docs/concepts/workloads/controllers/cron-jobs/#jobs-history-limits) field specifies the number of successful finished jobs to keep. Setting this field to 0 will not keep any successful jobs |
-| cronjob.suspend | boolean | `false` | [suspend](https://kubernetes.io/docs/concepts/workloads/controllers/cron-jobs/#schedule-suspension) field allows to suspend execution of Jobs for a CronJob.   @default -- false. |
+| cronjob.suspend | boolean | `false` | [suspend](https://kubernetes.io/docs/concepts/workloads/controllers/cron-jobs/#schedule-suspension) field allows to suspend execution of Jobs for a CronJob.  @default -- false. |
 | cronjob.timeZone | string | `nil` | [Time zone](https://kubernetes.io/docs/concepts/workloads/controllers/cron-jobs/#time-zones) to use when calculating schedule |
 | name | string | `nil` | Name of the service that will be deployed on K8s cluster |
 | namespace | string | `nil` | Namespace hosting the service that will be deployed on K8s cluster |
