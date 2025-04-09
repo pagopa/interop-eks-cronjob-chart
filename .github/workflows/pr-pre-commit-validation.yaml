@@ -1,9 +1,5 @@
 name: 'pr-pre-commit-validation'
 
-on:
-  push:
-    branches:
-      - "GF_Add_pre-commit"
   pull_request_target:
     types:
       - opened
@@ -26,10 +22,6 @@ jobs:
       - name: Install pre-commit
         run: |
           pip install pre-commit
-
-      - name: Run pre-commit version
-        run: |
-          pre-commit --version
 
       - name: Run pre-commit
         run: |
