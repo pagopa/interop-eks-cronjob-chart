@@ -53,7 +53,7 @@ spec:
               image: "{{ .Values.cronjob.image.repositoryPrefix }}/{{ .Values.cronjob.image.repositoryName | default .Values.name }}{{ $imageTag }}{{ $digestSuffix }}"
               imagePullPolicy: {{ .Values.cronjob.image.imagePullPolicy }}
               {{- if and .Values.cronjob .Values.cronjob.command }}
-              command: {{ .Values.cronjob.command }}
+              command: {{- toYaml .Values.cronjob.command | nindent 14 }}
               {{- end }}
               {{- if and .Values.cronjob .Values.cronjob.args }}
               args: {{ .Values.cronjob.args }}
