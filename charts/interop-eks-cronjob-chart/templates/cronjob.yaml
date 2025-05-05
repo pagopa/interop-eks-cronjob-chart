@@ -80,13 +80,6 @@ spec:
                       fieldPath: {{ $val | quote }}
                 {{- end }}
                 {{- end }}
-                {{- if and .Values.cronjob .Values.cronjob.env }}
-                {{- range $key, $val := .Values.cronjob.env }}
-                {{- $preprocessedEnvValue := include "interop-eks-cronjob-chart.render-template" (dict "value" $val "context" $) }}
-                - name: {{ $key | quote }}
-                  value: {{ $preprocessedEnvValue | quote }}
-                {{- end }}
-                {{- end }}
                 {{- if and .Values.cronjob .Values.cronjob.envFromConfigmaps }}
                 {{- range $key, $val := .Values.cronjob.envFromConfigmaps -}}
                 {{ $configmapAddress := mustRegexSplit "\\." $val 2 }}
@@ -105,6 +98,13 @@ spec:
                     secretKeyRef:
                       name: {{ index $secretAddress 0 | quote }}
                       key: {{ index $secretAddress 1 | quote }}
+                {{- end }}
+                {{- end }}
+                {{- if and .Values.cronjob .Values.cronjob.env }}
+                {{- range $key, $val := .Values.cronjob.env }}
+                {{- $preprocessedEnvValue := include "interop-eks-cronjob-chart.render-template" (dict "value" $val "context" $) }}
+                - name: {{ $key | quote }}
+                  value: {{ $preprocessedEnvValue | quote }}
                 {{- end }}
                 {{- end }}
               resources:
