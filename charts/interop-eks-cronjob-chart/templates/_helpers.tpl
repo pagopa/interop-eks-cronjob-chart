@@ -39,7 +39,7 @@ helm.sh/chart: {{ include "interop-eks-cronjob-chart.chart" . }}
 {{ include "interop-eks-cronjob-chart.selectorLabels" . }}
 {{- if .Values.cronjob.image.tag }}
 {{- $imageTag := "" }}
-{{- $imageTag = (nospace .Values.cronjob.image.tag) }}
+{{- $imageTag = ( print .Values.cronjob.image.tag | nospace ) }}
 app.kubernetes.io/version: {{ $imageTag }}
 {{ else if .Values.cronjob.image.digest }}
 {{- $digestSuffix := "" }}
