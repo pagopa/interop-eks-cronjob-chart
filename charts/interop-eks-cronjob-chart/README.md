@@ -13,6 +13,7 @@ The following table lists the configurable parameters of the Interop-eks-cronjob
 |-----|------|---------|-------------|
 | cronjob.activeDeadlineSeconds | int | 3600 | The activeDeadlineSeconds applies to the duration of the job, no matter how many Pods are created. Once a Job reaches activeDeadlineSeconds, all of its running Pods are terminated. |
 | cronjob.automountServiceAccountToken | bool | true | [automountServiceAccountToken](https://kubernetes.io/docs/tasks/configure-pod-container/configure-service-account/#use-the-default-service-account-to-access-the-api-server) |
+| cronjob.backoffLimit | int | `6` | [backoffLimit](https://kubernetes.io/docs/concepts/workloads/controllers/job/#handling-pod-and-container-failures) the number of retries before marking a Job as failed. |
 | cronjob.concurrencyPolicy | string | Allow | [concurrencyPolicy](https://kubernetes.io/docs/concepts/workloads/controllers/cron-jobs/#concurrency-policy) field specifies how to treat concurrent executions of a Job that is created by this CronJob. |
 | cronjob.env | object | `nil` | List of environment variables for a container, specifying a value directly for each named variable |
 | cronjob.envFromConfigmaps | object | `nil` | List of environment variables for a container, specifying a key from a Configmap for each named variable (k8s equivalent of envFrom.configMapRef) |

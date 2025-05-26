@@ -53,6 +53,8 @@ cronjob:
   # @default -- Allow
   concurrencyPolicy:
   restartPolicy: OnFailure
+  # -- (int) [backoffLimit](https://kubernetes.io/docs/concepts/workloads/controllers/job/#handling-pod-and-container-failures) the number of retries before marking a Job as failed.
+  backoffLimit: 6
   # -- (object) List of environment variables for a container, specifying a value directly for each named variable
   env:
   # -- (object) List of environment variables for a container, specifying a key from a Configmap for each named variable (k8s equivalent of envFrom.configMapRef)

@@ -24,7 +24,7 @@ metadata:
 spec:
   schedule: {{ .Values.cronjob.schedule | quote }}
   timeZone: {{ .Values.cronjob.timeZone | quote }}
-  failedJobsHistoryLimit: {{ .Values.cronjob.failedJobsHistoryLimit }} # K8s default is 1, , Chart default is 1
+  failedJobsHistoryLimit: {{ .Values.cronjob.failedJobsHistoryLimit }} # K8s default is 1, Chart default is 1
   successfulJobsHistoryLimit: {{ .Values.cronjob.successfulJobsHistoryLimit }} # K8s default is 3, Chart default is 0
   {{- if .Values.cronjob.concurrencyPolicy }} # K8s default is Allow
   concurrencyPolicy: {{ .Values.cronjob.concurrencyPolicy }}
@@ -39,7 +39,8 @@ spec:
         digest: {{ .Values.cronjob.image.digest | quote }} # Used to force deployment on same image version but different content
         {{- end }}
     spec:
-      activeDeadlineSeconds: {{ .Values.cronjob.activeDeadlineSeconds }} # Chart default 3600
+      backoffLimit: {{ .Values.cronjob.backoffLimit }} # K8s default is 6, Chart default is 6
+      activeDeadlineSeconds: {{ .Values.cronjob.activeDeadlineSeconds }} # Chart default is 3600
       template:
         metadata:
           labels:
