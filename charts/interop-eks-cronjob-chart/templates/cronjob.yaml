@@ -50,7 +50,7 @@ spec:
           restartPolicy: {{ .Values.cronjob.restartPolicy }}
           serviceAccountName: {{ .Values.name | quote }}
 
-          {{- if and .Values.cronjob .Values.cronjob.flywayInitContainer .Values.deployment.cronjob.create }}
+          {{- if and .Values.cronjob .Values.cronjob.flywayInitContainer .Values.cronjob.flywayInitContainer.create }}
           initContainers:
             - name: migrate-db
               image: flyway/flyway:{{ .Values.cronjob.flywayInitContainer.version}}
