@@ -20,6 +20,14 @@ The following table lists the configurable parameters of the Interop-eks-cronjob
 | cronjob.envFromFieldRef | object | `nil` | List of pod fields used as values for environment variablesenvironment variables for a container, specifying a key from a Secret for each named variable (k8s equivalent of env.valueFrom.fieldRef.fieldPath) |
 | cronjob.envFromSecrets | object | `nil` | List of environment variables for a container, specifying a key from a Secret for each named variable (k8s equivalent of envFrom.secretRef) |
 | cronjob.failedJobsHistoryLimit | int | 1 | [failedJobsHistoryLimit](https://kubernetes.io/docs/concepts/workloads/controllers/cron-jobs/#jobs-history-limits) field specifies the number of failed finished jobs to keep. Setting this field to 0 will not keep any failed jobs. |
+| cronjob.flywayInitContainer.create | bool | `false` |  |
+| cronjob.flywayInitContainer.downloadRedshiftDriver | bool | `false` | Enable Flyway to download Redshift jdbc driver |
+| cronjob.flywayInitContainer.env | object | `{}` | List of environment variables for a container, specifying a value directly for each named variable |
+| cronjob.flywayInitContainer.envFromConfigmaps | object | `{}` | List of environment variables for a container, specifying a key from a Configmap for each named variable (k8s equivalent of envFrom.configMapRef) |
+| cronjob.flywayInitContainer.envFromFieldRef | object | `{}` | List of pod fields used as values for environment variablesenvironment variables for a container, specifying a key from a Secret for each named variable (k8s equivalent of env.valueFrom.fieldRef.fieldPath) |
+| cronjob.flywayInitContainer.envFromSecrets | object | `{}` | List of environment variables for a container, specifying a key from a Secret for each named variable (k8s equivalent of envFrom.secretRef) |
+| cronjob.flywayInitContainer.migrationsConfigmap | string | `nil` | Configmap with migrations |
+| cronjob.flywayInitContainer.version | string | `"8.2.3"` | Flyway container image version |
 | cronjob.image | object | `{"digest":null,"imagePullPolicy":"Always","repositoryName":null,"repositoryPrefix":null,"tag":null}` | Cronjob image configuration |
 | cronjob.image.digest | string | `nil` | Image digest |
 | cronjob.image.imagePullPolicy | string | `"Always"` | Image pull policy |

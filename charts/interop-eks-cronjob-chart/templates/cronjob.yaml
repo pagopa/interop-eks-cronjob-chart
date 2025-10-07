@@ -49,6 +49,65 @@ spec:
           automountServiceAccountToken: {{ .Values.cronjob.automountServiceAccountToken }}
           restartPolicy: {{ .Values.cronjob.restartPolicy }}
           serviceAccountName: {{ .Values.name | quote }}
+
+          {{- if and .Values.cronjob .Values.cronjob.flywayInitContainer .Values.cronjob.flywayInitContainer.create }}
+          initContainers:
+            - name: migrate-db
+              image: flyway/flyway:{{ .Values.cronjob.flywayInitContainer.version}}
+              {{- if .Values.cronjob.flywayInitContainer.downloadRedshiftDriver }}
+              command:
+                - /bin/sh
+                - -c
+                - |
+                  echo "Downloading Redshift JDBC driver..."
+                  curl -L -o /flyway/drivers/RedshiftJDBC.jar https://s3.amazonaws.com/redshift-downloads/drivers/jdbc/2.1.0.32/redshift-jdbc42-2.1.0.32.jar
+                  echo "Starting Flyway migration..."
+                  flyway migrate
+              {{- else }}
+              args:
+                - migrate
+              {{- end }}
+              env:
+                {{- if .Values.cronjob.flywayInitContainer.envFromConfigmaps }}
+                {{- range $key, $val := .Values.cronjob.flywayInitContainer.envFromConfigmaps -}}
+                {{- $renderedVal := include "interop-eks-cronjob-chart.render-template" (dict "value" $val "context" $) }}
+                {{- $configmapAddress := mustRegexSplit "\\." $renderedVal 2 }}
+                - name: {{ $key }}
+                  valueFrom:
+                    configMapKeyRef:
+                      name: {{ index $configmapAddress 0 }}
+                      key: {{ index $configmapAddress 1 }}
+                {{- end }}
+                {{- end }}
+                {{- if .Values.cronjob.flywayInitContainer.env }}
+                {{- range $key, $val := .Values.cronjob.flywayInitContainer.env }}
+                {{- $preprocessedEnvValue := include "interop-eks-cronjob-chart.render-template" (dict "value" $val "context" $) }}
+                - name: "{{ $key }}"
+                  value: "{{ $preprocessedEnvValue }}"
+                {{- end }}
+                {{- end }}
+                {{- if .Values.cronjob.flywayInitContainer.envFromSecrets }}
+                {{- range $key, $val := .Values.cronjob.flywayInitContainer.envFromSecrets -}}
+                {{- $renderedVal := include "interop-eks-cronjob-chart.render-template" (dict "value" $val "context" $) }}
+                {{- $secretAddress := mustRegexSplit "\\." $renderedVal 2 }}
+                - name: {{ $key }}
+                  valueFrom:
+                    secretKeyRef:
+                      name: {{ index $secretAddress 0 }}
+                      key: {{ index $secretAddress 1 }}
+                {{- end }}
+                {{- end }}
+              volumeMounts:
+                - name: migrations-files
+                  mountPath: "/flyway/sql"
+              {{- if .Values.cronjob.flywayInitContainer.resources }}
+              resources:
+                {{- toYaml .Values.cronjob.flywayInitContainer.resources | nindent 12 }}
+              {{- else }}
+              resources:
+                {{- toYaml .Values.cronjob.resources | nindent 12 }}
+              {{- end}}
+          {{- end }}
           containers:
             - name: {{ .Values.name | quote }}
               image: "{{ .Values.cronjob.image.repositoryPrefix }}/{{ .Values.cronjob.image.repositoryName | default .Values.name }}{{ $imageTag }}{{ $digestSuffix }}"
