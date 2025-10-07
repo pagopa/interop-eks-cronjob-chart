@@ -102,10 +102,10 @@ spec:
                   mountPath: "/flyway/sql"
               {{- if .Values.cronjob.flywayInitContainer.resources }}
               resources:
-                {{- toYaml .Values.cronjob.flywayInitContainer.resources | nindent 12 }}
+                {{- toYaml .Values.cronjob.flywayInitContainer.resources | nindent 14 }}
               {{- else }}
               resources:
-                {{- toYaml .Values.cronjob.resources | nindent 12 }}
+                {{- toYaml .Values.cronjob.resources | nindent 14 }}
               {{- end}}
           {{- end }}
           containers:
