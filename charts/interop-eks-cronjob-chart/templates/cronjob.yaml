@@ -173,7 +173,16 @@ spec:
               volumeMounts:
                 {{- toYaml .Values.cronjob.volumeMounts | nindent 16 }}
               {{- end }}
-          {{- if and .Values.cronjob .Values.cronjob.volumes }}
+          {{- if and .Values.cronjob (or .Values.cronjob.volumes (and .Values.cronjob.flywayInitContainer .Values.cronjob.flywayInitContainer.create)) }}
           volumes:
+            {{- if and .Values.cronjob .Values.cronjob.flywayInitContainer .Values.cronjob.flywayInitContainer.create }}
+            - name: migrations-files
+              projected:
+                sources:
+                  - configMap:
+                      name: {{ .Values.cronjob.flywayInitContainer.migrationsConfigmap }}
+            {{- end }}
+            {{ if .Values.cronjob.volumes }}
             {{- toYaml .Values.cronjob.volumes | nindent 12 }}
+            {{- end }}
           {{- end }}
