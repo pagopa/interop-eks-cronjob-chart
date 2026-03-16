@@ -17,12 +17,30 @@
 {{- /* If the flyway initContainer is required then compute the flyway action(s) to execute */ -}}
 {{- $flyway_action := "" -}}
 
-{{- $flyway_repository_prefix := .Values.cronjob.flywayInitContainer.image.repositoryPrefix | default .Values.cronjob.image.repositoryPrefix }}
-{{- $flyway_repository_name := .Values.cronjob.flywayInitContainer.image.repositoryName }}
+{{- $flyway_repository_prefix := "" }}
+{{- if and .Values.cronjob.flywayInitContainer .Values.cronjob.flywayInitContainer.create}}
+{{- if and .Values.cronjob.flywayInitContainer .Values.cronjob.flywayInitContainer.image .Values.cronjob.flywayInitContainer.image.repositoryPrefix }}
+{{- $flyway_repository_prefix = .Values.cronjob.flywayInitContainer.image.repositoryPrefix }}
+{{- else if .Values.cronjob.image.repositoryPrefix }}
+{{- $flyway_repository_prefix = .Values.cronjob.image.repositoryPrefix }}
+{{- end }}
+{{- end }}
+
+
+{{- $flyway_repository_name := "" }}
+{{- if and .Values.cronjob.flywayInitContainer .Values.cronjob.flywayInitContainer.create}}
+{{- if and .Values.cronjob.flywayInitContainer.image .Values.cronjob.flywayInitContainer.image.repositoryName }}
+{{- $flyway_repository_name = .Values.cronjob.flywayInitContainer.image.repositoryName }}
+{{- else }}
+{{- fail "cronjob.flywayInitContainer.image.repositoryName must be defined when flywayInitContainer.create is true." }}
+{{- end }}
+{{- end }}
 
 {{- $flyway_image_digest := "" }}
-{{- if .Values.cronjob.flywayInitContainer.image.digest }}
+{{- if and .Values.cronjob.flywayInitContainer .Values.cronjob.flywayInitContainer.create}}
+{{- if and .Values.cronjob.flywayInitContainer .Values.cronjob.flywayInitContainer.image .Values.cronjob.flywayInitContainer.image.digest }}
 {{- $flyway_image_digest = (nospace (cat "@" .Values.cronjob.flywayInitContainer.image.digest)) }}
+{{- end }}
 {{- end }}
 
 {{- $flyway_image_tag := "" }}

@@ -2,150 +2,170 @@
   "$schema": "https://json-schema.org/draft-07/schema#",
   "properties": {
     "cronjob": {
-      "image": {
-        "description": "Container Image",
-        "properties": {
-          "repositoryPrefix": {
-            "type": "string"
-          },
-          "imagePullPolicy": {
-            "type": "string"
-          }
-        },
-        "type": "object",
-        "required": [
-          "repositoryPrefix"
-        ]
-      },
-      "resources": {
-        "description": "Container Resources consumption",
-        "properties": {
-          "requests": {
-            "properties": {
-              "cpu": {
-                "type": "string"
-              },
-              "memory": {
-                "type": "string"
-              }
-            },
-            "type": "object"
-          },
-          "limits": {
-            "properties": {
-              "cpu": {
-                "type": "string"
-              },
-              "memory": {
-                "type": "string"
-              }
-            },
-            "type": "object"
-          }
-        },
-        "type": "object"
-      },
-      "schedule": {
-        "description": "Cronjob scheduling expression",
-        "type": "string"
-      },
-      "flywayInitContainer": {
-        "description": "Optional Flyway init container configuration",
-        "properties": {
-          "create": {
-            "description": "Enable the Flyway init container",
-            "type": "boolean"
-          },
-          "image": {
-            "description": "Flyway init container image configuration",
-            "properties": {
-              "repositoryPrefix": {
-                "description": "Image repository prefix; defaults to cronjob.image.repositoryPrefix if not set",
-                "type": "string"
-              },
-              "repositoryName": {
-                "description": "Image repository name; required when create is true",
-                "type": "string"
-              },
-              "tag": {
-                "description": "Image tag; defaults to cronjob.image.tag if not set",
-                "type": "string"
-              },
-              "digest": {
-                "description": "Image digest; if set, overrides tag",
-                "type": "string"
-              }
-            },
-            "type": "object"
-          },
-          "executeFlywayMigrate": {
-            "description": "Execute Flyway migrate command to apply migrations to the database",
-            "type": "boolean"
-          },
-          "executeFlywayRepair": {
-            "description": "Execute Flyway repair command to recompute applied migrations checksum metadata",
-            "type": "boolean"
-          },
-          "downloadRedshiftDriver": {
-            "description": "Enable Flyway to download the Redshift JDBC driver",
-            "type": "boolean"
-          },
-          "migrationsConfigmap": {
-            "description": "Name of the ConfigMap containing migration files, mounted at /flyway/sql; mutually exclusive with migrationPaths",
-            "type": "string"
-          },
-          "migrationPaths": {
-            "description": "Comma-separated list of paths to migration files or directories; mutually exclusive with migrationsConfigmap",
-            "type": "string"
-          },
-          "env": {
-            "description": "Environment variables specified as direct key/value pairs",
-            "type": "object"
-          },
-          "envFromConfigmaps": {
-            "description": "Environment variables sourced from external ConfigMap keys",
-            "type": "object"
-          },
-          "envFromSecrets": {
-            "description": "Environment variables sourced from external Secret keys",
-            "type": "object"
-          },
-          "envFromFieldRef": {
-            "description": "Environment variables sourced from Pod fields via the downward API",
-            "type": "object"
-          },
-          "resources": {
-            "description": "Resource requests and limits for the Flyway init container; defaults to cronjob.resources if not set",
-            "properties": {
-              "requests": {
-                "properties": {
-                  "cpu": {
-                    "type": "string"
-                  },
-                  "memory": {
-                    "type": "string"
-                  }
-                },
-                "type": "object"
-              },
-              "limits": {
-                "properties": {
-                  "cpu": {
-                    "type": "string"
-                  },
-                  "memory": {
-                    "type": "string"
-                  }
-                },
-                "type": "object"
-              }
-            },
-            "type": "object"
-          }
-        },
-        "type": "object"
-      },
       "type": "object",
+      "properties": {
+        "image": {
+          "description": "Container Image",
+          "properties": {
+            "repositoryPrefix": {
+              "type": "string"
+            },
+            "imagePullPolicy": {
+              "type": "string"
+            }
+          },
+          "type": "object",
+          "required": [
+            "repositoryPrefix"
+          ]
+        },
+        "resources": {
+          "description": "Container Resources consumption",
+          "properties": {
+            "requests": {
+              "properties": {
+                "cpu": {
+                  "type": "string"
+                },
+                "memory": {
+                  "type": "string"
+                }
+              },
+              "type": "object"
+            },
+            "limits": {
+              "properties": {
+                "cpu": {
+                  "type": "string"
+                },
+                "memory": {
+                  "type": "string"
+                }
+              },
+              "type": "object"
+            }
+          },
+          "type": "object"
+        },
+        "schedule": {
+          "description": "Cronjob scheduling expression",
+          "type": "string"
+        },
+        "flywayInitContainer": {
+          "description": "Optional Flyway init container configuration",
+          "properties": {
+            "create": {
+              "description": "Enable the Flyway init container",
+              "type": "boolean"
+            },
+            "image": {
+              "description": "Flyway init container image configuration",
+              "properties": {
+                "repositoryPrefix": {
+                  "description": "Image repository prefix; defaults to cronjob.image.repositoryPrefix if not set",
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "repositoryName": {
+                  "description": "Image repository name; required when create is true",
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "tag": {
+                  "description": "Image tag; defaults to cronjob.image.tag if not set",
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "digest": {
+                  "description": "Image digest; if set, overrides tag",
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                }
+              },
+              "type": "object"
+            },
+            "executeFlywayMigrate": {
+              "description": "Execute Flyway migrate command to apply migrations to the database",
+              "type": "boolean"
+            },
+            "executeFlywayRepair": {
+              "description": "Execute Flyway repair command to recompute applied migrations checksum metadata",
+              "type": "boolean"
+            },
+            "downloadRedshiftDriver": {
+              "description": "Enable Flyway to download the Redshift JDBC driver",
+              "type": "boolean"
+            },
+            "migrationsConfigmap": {
+              "description": "Name of the ConfigMap containing migration files, mounted at /flyway/sql; mutually exclusive with migrationPaths",
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "migrationPaths": {
+              "description": "Comma-separated list of paths to migration files or directories; mutually exclusive with migrationsConfigmap",
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "env": {
+              "description": "Environment variables specified as direct key/value pairs",
+              "type": "object"
+            },
+            "envFromConfigmaps": {
+              "description": "Environment variables sourced from external ConfigMap keys",
+              "type": "object"
+            },
+            "envFromSecrets": {
+              "description": "Environment variables sourced from external Secret keys",
+              "type": "object"
+            },
+            "envFromFieldRef": {
+              "description": "Environment variables sourced from Pod fields via the downward API",
+              "type": "object"
+            },
+            "resources": {
+              "description": "Resource requests and limits for the Flyway init container; defaults to cronjob.resources if not set",
+              "properties": {
+                "requests": {
+                  "properties": {
+                    "cpu": {
+                      "type": "string"
+                    },
+                    "memory": {
+                      "type": "string"
+                    }
+                  },
+                  "type": "object"
+                },
+                "limits": {
+                  "properties": {
+                    "cpu": {
+                      "type": "string"
+                    },
+                    "memory": {
+                      "type": "string"
+                    }
+                  },
+                  "type": "object"
+                }
+              },
+              "type": "object"
+            }
+          },
+          "type": "object"
+        }
+      },
       "required": [
         "resources",
         "schedule"
