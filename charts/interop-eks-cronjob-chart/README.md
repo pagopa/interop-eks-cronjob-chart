@@ -24,10 +24,17 @@ The following table lists the configurable parameters of the Interop-eks-cronjob
 | cronjob.flywayInitContainer.downloadRedshiftDriver | bool | `false` | Enable Flyway to download Redshift jdbc driver |
 | cronjob.flywayInitContainer.env | object | `{}` | List of environment variables for a container, specifying a value directly for each named variable |
 | cronjob.flywayInitContainer.envFromConfigmaps | object | `{}` | List of environment variables for a container, specifying a key from a Configmap for each named variable (k8s equivalent of envFrom.configMapRef) |
-| cronjob.flywayInitContainer.envFromFieldRef | object | `{}` | List of pod fields used as values for environment variablesenvironment variables for a container, specifying a key from a Secret for each named variable (k8s equivalent of env.valueFrom.fieldRef.fieldPath) |
+| cronjob.flywayInitContainer.envFromFieldRef | object | `{}` | List of pod fields used as values for environment variables for a container, specifying a key from a Secret for each named variable (k8s equivalent of env.valueFrom.fieldRef.fieldPath) |
 | cronjob.flywayInitContainer.envFromSecrets | object | `{}` | List of environment variables for a container, specifying a key from a Secret for each named variable (k8s equivalent of envFrom.secretRef) |
-| cronjob.flywayInitContainer.migrationsConfigmap | string | `nil` | Configmap with migrations |
-| cronjob.flywayInitContainer.version | string | `"8.2.3"` | Flyway container image version |
+| cronjob.flywayInitContainer.executeFlywayMigrate | bool | `true` | Execute Flyway migrate command to apply migrations to the database |
+| cronjob.flywayInitContainer.executeFlywayRepair | bool | `false` | Execute Flyway repair command to recompute applied migrations checksum metadata; useful for whitespace changes |
+| cronjob.flywayInitContainer.image.digest | string | `nil` | Flyway image digest; if set, overrides `image.tag` |
+| cronjob.flywayInitContainer.image.repositoryName | string | `nil` | Flyway image repository name; must be set when `create` is `true` (e.g. `"interop-flyway-migrations"`) |
+| cronjob.flywayInitContainer.image.repositoryPrefix | string | `nil` | Flyway image repository prefix; defaults to `cronjob.image.repositoryPrefix` if not set |
+| cronjob.flywayInitContainer.image.tag | string | `nil` | Flyway image tag; defaults to `cronjob.image.tag` if not set |
+| cronjob.flywayInitContainer.migrationPaths | string | `nil` | List of comma-separated paths to migration files or directories containing migration files (e.g. `"/migrations/a_directory,v1_migration.sql,/migrations/b_directory"`); mutually exclusive with `migrationsConfigmap` |
+| cronjob.flywayInitContainer.migrationsConfigmap | string | `nil` | Name of the ConfigMap containing migration files, mounted at `/flyway/sql`; mutually exclusive with `migrationPaths` |
+| cronjob.flywayInitContainer.resources | object | `nil` | K8s container resources requests and limits for the Flyway init container; defaults to `cronjob.resources` if not set |
 | cronjob.image | object | `{"digest":null,"imagePullPolicy":"Always","repositoryName":null,"repositoryPrefix":null,"tag":null}` | Cronjob image configuration |
 | cronjob.image.digest | string | `nil` | Image digest |
 | cronjob.image.imagePullPolicy | string | `"Always"` | Image pull policy |
