@@ -30,7 +30,9 @@
 {{- if .Values.cronjob.flywayInitContainer.image.tag }}
 {{- $flyway_image_tag = (nospace (cat ":" .Values.cronjob.flywayInitContainer.image.tag)) }}
 {{- else }}
+{{- if .Values.cronjob.image.tag }}
 {{- $flyway_image_tag = (nospace (cat ":" .Values.cronjob.image.tag)) }}
+{{- end }}
 {{- end }}
 {{- end }}
 
@@ -93,7 +95,7 @@ spec:
                 - /bin/sh
                 - -c
                 - |
-{{- .Files.Get "files/flyway-init.sh" | nindent 16 }}
+{{ .Files.Get "files/flyway-init.sh" | nindent 18 }}
               env:
                 {{- if .Values.cronjob.flywayInitContainer.migrationPaths }}
                 - name: INTERNAL_FLYWAY_MIGRATIONS_PATHS
@@ -147,10 +149,10 @@ spec:
               {{- end }}
               {{- if .Values.cronjob.flywayInitContainer.resources }}
               resources:
-                {{- toYaml .Values.cronjob.flywayInitContainer.resources | nindent 14 }}
+                {{- toYaml .Values.cronjob.flywayInitContainer.resources | nindent 16 }}
               {{- else }}
               resources:
-                {{- toYaml .Values.cronjob.resources | nindent 14 }}
+                {{- toYaml .Values.cronjob.resources | nindent 16 }}
               {{- end}}
           {{- end }}
           containers:
@@ -218,7 +220,7 @@ spec:
               volumeMounts:
                 {{- toYaml .Values.cronjob.volumeMounts | nindent 16 }}
               {{- end }}
-          {{- if and .Values.cronjob (or .Values.cronjob.volumes (and .Values.cronjob.flywayInitContainer .Values.cronjob.flywayInitContainer.create)) }}
+          {{- if and .Values.cronjob (or .Values.cronjob.volumes (and .Values.cronjob.flywayInitContainer .Values.cronjob.flywayInitContainer.create  .Values.cronjob.flywayInitContainer.migrationsConfigmap)) }}
           volumes:
             {{- if and .Values.cronjob .Values.cronjob.flywayInitContainer .Values.cronjob.flywayInitContainer.create .Values.cronjob.flywayInitContainer.migrationsConfigmap }}
             - name: migrations-files
