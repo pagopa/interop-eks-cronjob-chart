@@ -132,6 +132,14 @@ spec:
                       key: {{ index $secretAddress 1 }}
                 {{- end }}
                 {{- end }}
+                {{- if .Values.cronjob.flywayInitContainer.envFromFieldRef }}
+                {{- range $key, $val := .Values.cronjob.flywayInitContainer.envFromFieldRef }}
+                - name: {{ $key }}
+                  valueFrom:
+                    fieldRef:
+                      fieldPath: {{ $val | quote }}
+                {{- end }}
+                {{- end }}
               {{- if .Values.cronjob.flywayInitContainer.migrationsConfigmap }}
               volumeMounts:
                 - name: migrations-files
