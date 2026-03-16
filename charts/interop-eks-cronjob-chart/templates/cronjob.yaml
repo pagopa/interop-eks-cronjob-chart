@@ -14,6 +14,42 @@
 {{ fail "One of cronjob.image.tag and cronjob.image.digest must be defined." }}
 {{- end }}
 
+{{- /* If the flyway initContainer is required then compute the flyway action(s) to execute */ -}}
+{{- $flyway_action := "" -}}
+
+{{- $flyway_repository_prefix := .Values.cronjob.flywayInitContainer.image.repositoryPrefix | default .Values.cronjob.image.repositoryPrefix }}
+{{- $flyway_repository_name := .Values.cronjob.flywayInitContainer.image.repositoryName }}
+
+{{- $flyway_image_digest := "" }}
+{{- if .Values.cronjob.flywayInitContainer.image.digest }}
+{{- $flyway_image_digest = (nospace (cat "@" .Values.cronjob.flywayInitContainer.image.digest)) }}
+{{- end }}
+
+{{- $flyway_image_tag := "" }}
+{{- if not .Values.cronjob.flywayInitContainer.image.digest }}
+{{- if .Values.cronjob.flywayInitContainer.image.tag }}
+{{- $flyway_image_tag = (nospace (cat ":" .Values.cronjob.flywayInitContainer.image.tag)) }}
+{{- else }}
+{{- $flyway_image_tag = (nospace (cat ":" .Values.cronjob.image.tag)) }}
+{{- end }}
+{{- end }}
+
+{{- if and .Values.cronjob .Values.cronjob.flywayInitContainer .Values.cronjob.flywayInitContainer.create }}
+{{- if and .Values.cronjob.flywayInitContainer.migrationsConfigmap .Values.cronjob.flywayInitContainer.migrationPaths }}
+{{ fail "Invalid configuration - Both migrationsConfigmap and migrationPaths in flywayInitContainer cannot be defined at the same time." }}
+{{- end }}
+
+{{- if and .Values.cronjob.flywayInitContainer.executeFlywayMigrate .Values.cronjob.flywayInitContainer.executeFlywayRepair -}}
+{{ $flyway_action = "repair-and-migrate" }}
+{{- else if .Values.cronjob.flywayInitContainer.executeFlywayMigrate -}}
+{{ $flyway_action = "migrate" }}
+{{- else if .Values.cronjob.flywayInitContainer.executeFlywayRepair -}}
+{{ $flyway_action = "repair" }}
+{{- else -}}
+{{- fail "Invalid configuration: Both executeFlywayMigrate and executeFlywayRepair in the flywayInitContainer are false." -}}
+{{- end -}}
+{{- end -}}
+
 apiVersion: batch/v1
 kind: CronJob
 metadata:
@@ -49,25 +85,24 @@ spec:
           automountServiceAccountToken: {{ .Values.cronjob.automountServiceAccountToken }}
           restartPolicy: {{ .Values.cronjob.restartPolicy }}
           serviceAccountName: {{ .Values.name | quote }}
-
           {{- if and .Values.cronjob .Values.cronjob.flywayInitContainer .Values.cronjob.flywayInitContainer.create }}
           initContainers:
             - name: migrate-db
-              image: flyway/flyway:{{ .Values.cronjob.flywayInitContainer.version}}
-              {{- if .Values.cronjob.flywayInitContainer.downloadRedshiftDriver }}
+              image: "{{ $flyway_repository_prefix }}/{{ $flyway_repository_name }}{{ $flyway_image_tag }}{{ $flyway_image_digest }}"
               command:
                 - /bin/sh
                 - -c
                 - |
-                  echo "Downloading Redshift JDBC driver..."
-                  curl -L -o /flyway/drivers/RedshiftJDBC.jar https://s3.amazonaws.com/redshift-downloads/drivers/jdbc/2.1.0.32/redshift-jdbc42-2.1.0.32.jar
-                  echo "Starting Flyway migration..."
-                  flyway migrate
-              {{- else }}
-              args:
-                - migrate
-              {{- end }}
+{{- .Files.Get "files/flyway-init.sh" | nindent 16 }}
               env:
+                {{- if .Values.cronjob.flywayInitContainer.migrationPaths }}
+                - name: INTERNAL_FLYWAY_MIGRATIONS_PATHS
+                  value: "{{ .Values.cronjob.flywayInitContainer.migrationPaths }}"
+                {{- end }}
+                - name: INTERNAL_DOWNLOAD_REDSHIFT_DRIVER
+                  value: "{{ ternary "true" "false" .Values.cronjob.flywayInitContainer.downloadRedshiftDriver }}"
+                - name: INTERNAL_FLYWAY_ACTION
+                  value: "{{- $flyway_action }}"
                 {{- if .Values.cronjob.flywayInitContainer.envFromConfigmaps }}
                 {{- range $key, $val := .Values.cronjob.flywayInitContainer.envFromConfigmaps -}}
                 {{- $renderedVal := include "interop-eks-cronjob-chart.render-template" (dict "value" $val "context" $) }}
@@ -97,9 +132,11 @@ spec:
                       key: {{ index $secretAddress 1 }}
                 {{- end }}
                 {{- end }}
+              {{- if .Values.cronjob.flywayInitContainer.migrationsConfigmap }}
               volumeMounts:
                 - name: migrations-files
                   mountPath: "/flyway/sql"
+              {{- end }}
               {{- if .Values.cronjob.flywayInitContainer.resources }}
               resources:
                 {{- toYaml .Values.cronjob.flywayInitContainer.resources | nindent 14 }}
@@ -175,7 +212,7 @@ spec:
               {{- end }}
           {{- if and .Values.cronjob (or .Values.cronjob.volumes (and .Values.cronjob.flywayInitContainer .Values.cronjob.flywayInitContainer.create)) }}
           volumes:
-            {{- if and .Values.cronjob .Values.cronjob.flywayInitContainer .Values.cronjob.flywayInitContainer.create }}
+            {{- if and .Values.cronjob .Values.cronjob.flywayInitContainer .Values.cronjob.flywayInitContainer.create .Values.cronjob.flywayInitContainer.migrationsConfigmap }}
             - name: migrations-files
               projected:
                 sources:
