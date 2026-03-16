@@ -1,0 +1,17 @@
+# migrationPaths impostato -> INTERNAL_FLYWAY_MIGRATIONS_PATHS presente nell'env
+# Verifica: env var INTERNAL_FLYWAY_MIGRATIONS_PATHS deve essere presente con il valore configurato.
+#           NON deve essere presente nessun volumeMount sull'initContainer.
+#
+# helm template charts/interop-eks-cronjob-chart -f tests/flyway-init-container/base-values.yaml -f tests/flyway-init-container/success/ts-12-migration-paths.yaml
+#
+# Verifica manuale output:
+#   | grep "INTERNAL_FLYWAY_MIGRATIONS_PATHS" -A1 -> deve mostrare value: /migrations/v1,/migrations/v2
+#   | grep "volumeMounts" -> NON deve apparire nel blocco initContainers
+
+cronjob:
+  flywayInitContainer:
+    create: true
+    image:
+      repositoryName: interop-flyway-migrations
+    executeFlywayMigrate: true
+    migrationPaths: "/migrations/v1,/migrations/v2"

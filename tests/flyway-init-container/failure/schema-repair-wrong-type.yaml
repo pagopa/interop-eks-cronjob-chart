@@ -1,0 +1,17 @@
+# executeFlywayRepair impostato come stringa invece di boolean
+#            -> violazione JSON schema (type: boolean)
+#
+# Errore atteso da helm lint / helm template:
+#   [ERROR] values.yaml: cronjob.flywayInitContainer.executeFlywayRepair: Invalid type.
+#           Expected: boolean, given: string
+#
+# helm template charts/interop-eks-cronjob-chart -f tests/flyway-init-container/base-values.yaml -f tests/flyway-init-container/failure/schema-repair-wrong-type.yaml
+# Atteso: exit code != 0
+
+cronjob:
+  flywayInitContainer:
+    create: true
+    image:
+      repositoryName: interop-flyway-migrations
+    executeFlywayMigrate: true
+    executeFlywayRepair: "false"    # stringa invece di boolean → tipo errato

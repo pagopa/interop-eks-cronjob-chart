@@ -1,0 +1,15 @@
+# Flyway image.repositoryPrefix impostato -> sovrascrive cronjob.image.repositoryPrefix
+# Verifica: l'immagine dell'initContainer deve iniziare con "flyway-registry.example.com/" e NON con "my-registry.example.com/".
+#
+# helm template charts/interop-eks-cronjob-chart -f tests/flyway-init-container/base-values.yaml -f tests/flyway-init-container/success/flyway-repository-prefix.yaml
+#
+# Verifica manuale output (blocco initContainers):
+#   | grep "image:" -> deve contenere flyway-registry.example.com/
+
+cronjob:
+  flywayInitContainer:
+    create: true
+    image:
+      repositoryPrefix: flyway-registry.example.com
+      repositoryName: interop-flyway-migrations
+    executeFlywayMigrate: true

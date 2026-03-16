@@ -1,0 +1,28 @@
+# Campo "name" assente -> violazione JSON schema (required: [name, namespace])
+#
+# Errore atteso da helm lint / helm template:
+#   [ERROR] values.yaml: (root): name is required
+#
+# helm template charts/interop-eks-cronjob-chart -f tests/general/failure/schema-missing-name.yaml
+# Atteso: exit code != 0
+
+name: #intenzionalmente omesso
+namespace: test-ns
+
+serviceAccount:
+  roleArn: "arn:aws:iam::123456789012:role/test-role"
+
+cronjob:
+  schedule: "0 * * * *"
+  image:
+    repositoryPrefix: my-registry.example.com
+    tag: "1.0.0"
+  resources:
+    requests:
+      cpu: "100m"
+      memory: "128Mi"
+    limits:
+      cpu: "200m"
+      memory: "256Mi"
+  flywayInitContainer:
+    create: false

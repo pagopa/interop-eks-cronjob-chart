@@ -1,0 +1,18 @@
+# create=true senza definire executeFlywayMigrate né executeFlywayRepair
+#            -> entrambi risultano falsy -> fail() esplicito
+#
+# Errore atteso:
+#   "Invalid configuration: Both executeFlywayMigrate and executeFlywayRepair
+#    in the flywayInitContainer are false."
+#
+# helm template charts/interop-eks-cronjob-chart -f tests/flyway-init-container/base-values.yaml -f tests/flyway-init-container/failure/no-action-omitted.yaml
+# Atteso: exit code != 0
+
+cronjob:
+  flywayInitContainer:
+    create: true
+    image:
+      repositoryName: interop-flyway-migrations
+    executeFlywayMigrate: false 
+    executeFlywayRepair:  false 
+      

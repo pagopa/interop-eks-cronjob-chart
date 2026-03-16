@@ -1,0 +1,17 @@
+# flywayInitContainer.resources.requests.cpu impostato come intero invece di stringa
+#
+# helm template charts/interop-eks-cronjob-chart -f tests/flyway-init-container/base-values.yaml -f tests/flyway-init-container/failure/schema-flyway-resources-wrong-type.yaml
+
+cronjob:
+  flywayInitContainer:
+    create: true
+    image:
+      repositoryName: interop-flyway-migrations
+    executeFlywayMigrate: true
+    resources:
+      requests:
+        cpu: 100       # intero invece di stringa (es. "100m") → tipo errato
+        memory: "128Mi"
+      limits:
+        cpu: 200       # intero invece di stringa → tipo errato
+        memory: "256Mi"

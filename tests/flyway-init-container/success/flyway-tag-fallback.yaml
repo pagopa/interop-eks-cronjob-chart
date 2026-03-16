@@ -1,0 +1,15 @@
+# Flyway image.tag non impostato -> fallback a cronjob.image.tag ("1.0.0")
+# Verifica: l'immagine dell'initContainer deve terminare con ":1.0.0".
+#
+# helm template charts/interop-eks-cronjob-chart -f tests/flyway-init-container/base-values.yaml -f tests/flyway-init-container/success/ts-09-flyway-tag-fallback.yaml
+#
+# Verifica manuale output (blocco initContainers):
+#   | grep "image:" -> deve contenere :1.0.0
+
+cronjob:
+  flywayInitContainer:
+    create: true
+    image:
+      repositoryName: interop-flyway-migrations
+      # tag intenzionalmente non impostato: deve ereditare cronjob.image.tag
+    executeFlywayMigrate: true

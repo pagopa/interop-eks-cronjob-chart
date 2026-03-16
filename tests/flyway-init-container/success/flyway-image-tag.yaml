@@ -1,0 +1,15 @@
+# Flyway image.tag impostato esplicitamente → sovrascrive cronjob.image.tag
+# Verifica: l'immagine dell'initContainer deve contenere ":2.5.0" e NON ":1.0.0".
+#
+# helm template charts/interop-eks-cronjob-chart -f tests/flyway-init-container/base-values.yaml -f tests/flyway-init-container/success/flyway-image-tag.yaml
+#
+# Verifica manuale output (blocco initContainers):
+#   | grep "image:" -> deve contenere :2.5.0
+
+cronjob:
+  flywayInitContainer:
+    create: true
+    image:
+      repositoryName: interop-flyway-migrations
+      tag: "2.5.0"
+    executeFlywayMigrate: true

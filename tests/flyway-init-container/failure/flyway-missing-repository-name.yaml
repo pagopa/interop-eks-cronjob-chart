@@ -1,0 +1,11 @@
+# create=true ma image.repositoryName non impostato → immagine malformata
+#
+# helm template charts/interop-eks-cronjob-chart -f tests/flyway-init-container/base-values.yaml -f tests/flyway-init-container/failure/flyway-missing-repository-name.yaml \
+#   | grep "image:" -> deve mostrare un'immagine con segmento vuoto o "<no value>"
+# Atteso ideale: exit code != 0
+
+cronjob:
+  flywayInitContainer:
+    create: true
+    image:
+    executeFlywayMigrate: true
