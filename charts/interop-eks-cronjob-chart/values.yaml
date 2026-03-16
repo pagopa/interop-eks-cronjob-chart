@@ -44,7 +44,7 @@ cronjob:
       digest:
     # -- (bool) execute Flyway migrate command to apply migrations to the database
     executeFlywayMigrate: true
-    # -- (bool) execute Flyway repair command to recompute applied migrations metadata; useful for whitespace changes.
+    # -- (bool) downloadRedshiftDriver: if true, the init container will download the Redshift JDBC driver from the official AWS S3 bucket and place it in the Flyway drivers directory before executing any Flyway command. This is required when using Flyway with Redshift, as the driver is not included in the default Flyway image.
     downloadRedshiftDriver: false
     # -- Configmap with migrations
     migrationsConfigmap:
