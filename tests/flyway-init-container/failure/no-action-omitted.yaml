@@ -13,6 +13,6 @@ cronjob:
     create: true
     image:
       repositoryName: interop-flyway-migrations
-    executeFlywayMigrate: false 
-    executeFlywayRepair:  false 
-      
+    executeFlywayMigrate: false
+    executeFlywayRepair:  false
+

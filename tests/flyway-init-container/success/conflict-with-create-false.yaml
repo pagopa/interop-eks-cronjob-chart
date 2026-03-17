@@ -1,5 +1,5 @@
 # migrationsConfigmap e migrationPaths entrambi impostati ma create=false
-# 
+#
 # Comportamento atteso: exit code 0, nessun initContainer nel manifest.
 #
 # helm template charts/interop-eks-cronjob-chart -f tests/flyway-init-container/base-values.yaml -f tests/flyway-init-container/success/conflict-with-create-false.yaml
