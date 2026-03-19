@@ -1,0 +1,13 @@
+# envFromConfigmaps: valore con più di un "." nel nome della chiave
+#
+# helm template charts/interop-eks-cronjob-chart -f tests/flyway-init-container/base-values.yaml -f tests/flyway-init-container/success/env-configmap-multi-dot.yaml \
+#   | grep "key:" -> deve mostrare key: SECTION.KEY  (non solo "KEY")
+
+cronjob:
+  flywayInitContainer:
+    create: true
+    image:
+      repositoryName: interop-flyway-migrations
+    executeFlywayMigrate: true
+    envFromConfigmaps:
+      APP_CONFIG: "my-configmap.SECTION.KEY"    # più di un punto: split solo sul primo

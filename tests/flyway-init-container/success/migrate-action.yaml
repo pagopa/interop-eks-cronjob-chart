@@ -1,0 +1,16 @@
+# executeFlywayMigrate=true only -> INTERNAL_FLYWAY_ACTION=migrate
+# Verifica: env var INTERNAL_FLYWAY_ACTION deve avere valore "migrate".
+#
+# helm template charts/interop-eks-cronjob-chart -f tests/flyway-init-container/base-values.yaml -f tests/flyway-init-container/success/ts-02-migrate.yaml
+# helm lint    charts/interop-eks-cronjob-chart -f tests/flyway-init-container/base-values.yaml -f tests/flyway-init-container/success/ts-02-migrate.yaml
+#
+# Verifica manuale output:
+#   | grep "INTERNAL_FLYWAY_ACTION" -A1 -> deve mostrare value: migrate
+
+cronjob:
+  flywayInitContainer:
+    create: true
+    image:
+      repositoryName: interop-flyway-migrations
+    executeFlywayMigrate: true
+    executeFlywayRepair: false

@@ -1,0 +1,17 @@
+# flywayInitContainer.envFromConfigmaps -> configMapKeyRef nell'env dell'initContainer
+# Verifica: la variabile DB_URL deve comparire nell'env come configMapKeyRef
+#           con name: db-configmap e key: DATABASE_URL.
+#
+# helm template charts/interop-eks-cronjob-chart -f tests/flyway-init-container/base-values.yaml -f tests/flyway-init-container/success/env-from-configmaps.yaml
+#
+# Verifica manuale output (blocco initContainers > env):
+#   | grep "DB_URL" -A4 -> deve mostrare configMapKeyRef con name: db-configmap, key: DATABASE_URL
+
+cronjob:
+  flywayInitContainer:
+    create: true
+    image:
+      repositoryName: interop-flyway-migrations
+    executeFlywayMigrate: true
+    envFromConfigmaps:
+      DB_URL: "db-configmap.DATABASE_URL"

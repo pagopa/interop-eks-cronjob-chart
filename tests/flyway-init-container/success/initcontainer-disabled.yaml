@@ -1,0 +1,11 @@
+# initContainer disabled (default)
+# Verifica: nessun blocco initContainers deve essere presente nel manifest.
+#
+# helm template charts/interop-eks-cronjob-chart -f tests/flyway-init-container/base-values.yaml -f tests/flyway-init-container/success/initcontainer-disabled.yaml
+#
+# Verifica manuale output:
+#   | grep -c "initContainers" -> deve restituire 0
+
+cronjob:
+  flywayInitContainer:
+    create: false

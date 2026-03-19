@@ -1,0 +1,36 @@
+# cronjob.image.tag e cronjob.image.digest entrambi assenti → il template deve fallire
+# Verifica: helm template deve restituire un errore con il messaggio:
+#   "One of cronjob.image.tag and cronjob.image.digest must be defined."
+#
+# Nota: questo test NON usa base-values.yaml perché occorre sovrascrivere image.tag a null.
+#
+# helm template charts/interop-eks-cronjob-chart -f tests/general/failure/no-image-tag-or-digest.yaml
+#
+# Verifica: il comando deve uscire con codice != 0 e stampare il messaggio di errore atteso.
+
+name: test-cronjob
+namespace: test-ns
+
+serviceAccount:
+  roleArn: "arn:aws:iam::123456789012:role/test-role"
+
+cronjob:
+  schedule: "0 * * * *"
+  image:
+    repositoryPrefix: my-registry.example.com
+    repositoryName: my-app
+    imagePullPolicy: Always
+    tag: ~        # null: nessun tag impostato
+    digest: ~     # null: nessun digest impostato
+  resources:
+    requests:
+      cpu: "100m"
+      memory: "128Mi"
+    limits:
+      cpu: "200m"
+      memory: "256Mi"
+  flywayInitContainer:
+    create: true
+    image:
+      repositoryName: interop-flyway-migrations
+    executeFlywayMigrate: true

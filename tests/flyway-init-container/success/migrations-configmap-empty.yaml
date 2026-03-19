@@ -1,0 +1,14 @@
+# migrationsConfigmap impostato come stringa vuota ""
+#
+# helm template charts/interop-eks-cronjob-chart -f tests/flyway-init-container/base-values.yaml -f tests/flyway-init-container/success/migrations-configmap-empty.yaml \
+#   | grep "migrations-files"  -> deve restituire 0 righe
+# helm template charts/interop-eks-cronjob-chart -f tests/flyway-init-container/base-values.yaml -f tests/flyway-init-container/success/migrations-configmap-empty.yaml \
+#   | grep "volumeMounts"      -> NON deve apparire nel blocco initContainers
+
+cronjob:
+  flywayInitContainer:
+    create: true
+    image:
+      repositoryName: interop-flyway-migrations
+    executeFlywayMigrate: true
+    migrationsConfigmap: ""    # stringa vuota: falsy → nessun volume/volumeMount atteso

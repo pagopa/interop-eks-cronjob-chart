@@ -1,0 +1,11 @@
+# migrationPaths impostato ma create=false → INTERNAL_FLYWAY_MIGRATIONS_PATHS
+#            NON viene renderizzato, il valore è silenziosamente ignorato.
+#
+# helm template charts/interop-eks-cronjob-chart -f tests/flyway-init-container/base-values.yaml -f tests/flyway-init-container/success/migration-paths-with-create-false.yaml \
+#   | grep "INTERNAL_FLYWAY_MIGRATIONS_PATHS"  -> deve restituire 0 righe
+
+cronjob:
+  flywayInitContainer:
+    create: false                               # initContainer disabilitato
+    migrationPaths: "/migrations/v1,/migrations/v2"  # impostato ma ignorato silenziosamente
+    executeFlywayMigrate: true

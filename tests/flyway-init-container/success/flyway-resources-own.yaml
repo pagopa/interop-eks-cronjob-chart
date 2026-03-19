@@ -1,0 +1,22 @@
+# flywayInitContainer.resources impostato -> usa i propri resource limits
+# Verifica: l'initContainer deve avere requests.cpu=50m e limits.memory=128Mi
+#           (valori flyway-specifici, NON quelli del cronjob base: 100m / 256Mi).
+#
+# helm template charts/interop-eks-cronjob-chart -f tests/flyway-init-container/base-values.yaml -f tests/flyway-init-container/success/flyway-resources-own.yaml
+#
+# Verifica manuale output (blocco initContainers > resources):
+#   | grep -A6 "resources:" -> deve mostrare cpu: 50m e memory: 128Mi (primo blocco resources = initContainer)
+
+cronjob:
+  flywayInitContainer:
+    create: true
+    image:
+      repositoryName: interop-flyway-migrations
+    executeFlywayMigrate: true
+    resources:
+      requests:
+        cpu: "50m"
+        memory: "64Mi"
+      limits:
+        cpu: "100m"
+        memory: "128Mi"

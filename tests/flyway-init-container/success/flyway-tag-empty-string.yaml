@@ -1,0 +1,13 @@
+# flywayInitContainer.image.tag impostato come stringa vuota ""
+#
+# helm template charts/interop-eks-cronjob-chart -f tests/flyway-init-container/base-values.yaml -f tests/flyway-init-container/success/flyway-tag-empty-string.yaml \
+#   | grep "name: migrate-db" -A2 | grep "image:"
+#   -> verifica che NON contenga solo ":" come suffisso
+
+cronjob:
+  flywayInitContainer:
+    create: true
+    image:
+      repositoryName: interop-flyway-migrations
+      tag: ""          # stringa vuota: falsy in Go templates → fallback atteso su cronjob.image.tag
+    executeFlywayMigrate: true

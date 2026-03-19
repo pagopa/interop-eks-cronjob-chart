@@ -12,22 +12,23 @@ The following table lists the configurable parameters of the Interop-eks-cronjob
 {{ template "chart.valuesTable" . }}
 
 
-## 1. Configurazione di Cronjob
+## 1. CronJob Configuration
 
 ### 1.1. Env
 
-#### 1.1.1. <ins>configmap - Referenziare la ConfigMap del Cronjob
-Per referenziare una chiave dalla ConfigMap è necessario aggiungere una coppia chiave/valore nel blocco "configmap" nel file _values.yaml_ specifico per il Cronjob.
-La coppia chiave/valore deve essere così definita:
-* Chiave: è mappata con il nome (name) della variabile d'ambiente utilizzata dal Cronjob ed, al contempo, con la chiave definita nella ConfigMap; dunque le due chiavi coincidono;
-* Valore: è il valore reale associato alla chiave precedentemente definita
+#### 1.1.1. <ins>configmap - Reference the CronJob ConfigMap</ins>
 
-Dichiarando la sezione "configmap" nel file _values.yaml_ di uno specifico Cronjob saranno applicati i seguenti automatismi:
-* sarà creata una ConfigMap con lo stesso "name" del Cronjob;
-* il campo "data" di tale ConfigMap sarà popolato con tutti le coppie chiave/valore definite in "configmap"
-* nella definizione del Cronjob sarà aggiunto nella sezione "env" un riferimento per ogni coppia chiave/valore definita nella ConfigMap del Cronjob
+To reference a key from the ConfigMap, a key/value pair must be added to the "configmap" block in the CronJob-specific _values.yaml_ file.
+The key/value pair must be defined as follows:
+* Key: mapped to both the name of the environment variable used by the CronJob and the key defined in the ConfigMap; therefore the two keys coincide;
+* Value: the actual value associated with the key defined above
 
-Definendo la seguente configurazione d'esempio nel _values.yaml_ del Cronjob, ad esempio "dashboard-metrics-report-generator" per ambiente "qa":
+By declaring the "configmap" section in a CronJob's _values.yaml_ file, the following will happen automatically:
+* a ConfigMap with the same "name" as the CronJob will be created;
+* the "data" field of that ConfigMap will be populated with all the key/value pairs defined in "configmap";
+* a reference for each key/value pair defined in the CronJob's ConfigMap will be added to the "env" section of the CronJob definition.
+
+Given the following example configuration in the CronJob _values.yaml_, e.g. "dashboard-metrics-report-generator" for environment "qa":
 
 ```
 # /jobs/dashboard-metrics-report-generator/qa/values.yaml
@@ -36,7 +37,7 @@ configmap:
     ENV_FIELD_KEY: "ENV_FIELD_VALUE"
 ```
 
-sarà creata una ConfigMap dedicata e contenente i dati indicati:
+a dedicated ConfigMap containing the specified data will be created:
 
 ```
 apiVersion: v1
@@ -48,7 +49,7 @@ data:
   ENV_FIELD_KEY: "ENV_FIELD_VALUE"
 ```
 
-e sarà aggiunto un riferimento nel Cronjob nella sezione _env_:
+and a reference will be added to the CronJob in the _env_ section:
 
 ```
 env:
@@ -59,17 +60,17 @@ env:
         key: ENV_FIELD_KEY
 ```
 
-Non c'è limite al numero di variabili d'ambiente configurabili nella sezione "configmap".
+There is no limit to the number of environment variables configurable in the "configmap" section.
 
 
-#### 1.1.2. <ins>envFromConfigmaps - Referenziare una ConfigMap esterna</ins>
+#### 1.1.2. <ins>envFromConfigmaps - Reference an external ConfigMap</ins>
 
-Per referenziare una chiave da una ConfigMap esterna, è necessario aggiungere una coppia chiave/valore nel blocco "job.envFromConfigmaps" nel file _values.yaml_ specifico per il Cronjob.
-La coppia chiave/valore deve essere così definita:
-* Chiave: è mappata con il nome (name) della variabile d'ambiente utilizzata dal Cronjob
-* Valore: è composto da due valori separati dal carattere "."; il primo valore rappresenta il nome della ConfigMap esterna referenziata, il secondo valore è la chiave desiderata definita nella ConfigMap
+To reference a key from an external ConfigMap, a key/value pair must be added to the "cronjob.envFromConfigmaps" block in the CronJob-specific _values.yaml_ file.
+The key/value pair must be defined as follows:
+* Key: mapped to the name of the environment variable used by the CronJob
+* Value: composed of two values separated by "."; the first value is the name of the referenced external ConfigMap, the second value is the desired key defined in the ConfigMap
 
-Definendo la seguente configurazione d'esempio nel _values.yaml_ del Cronjob, ad esempio "dashboard-metrics-report-generator" per ambiente "qa":
+Given the following example configuration in the CronJob _values.yaml_, e.g. "dashboard-metrics-report-generator" for environment "qa":
 
 ```
 # /jobs/dashboard-metrics-report-generator/qa/values.yaml
@@ -79,7 +80,7 @@ job:
     CUSTOM_LABEL: "external-configmap-name.REFERENCED_LABEL"
 ```
 
-sarà aggiunto un riferimento nel Cronjob nella sezione _env_:
+a reference will be added to the CronJob in the _env_ section:
 
 ```
 env:
@@ -90,17 +91,17 @@ env:
         key: REFERENCED_LABEL
 ```
 
-Non c'è limite al numero di variabili d'ambiente configurabili nella sezione "envFromConfigmaps".
+There is no limit to the number of environment variables configurable in the "envFromConfigmaps" section.
 
 
-#### 1.1.3. <ins>envFromSecrets - Referenziare un Secret esterno</ins>
+#### 1.1.3. <ins>envFromSecrets - Reference an external Secret</ins>
 
-Per referenziare una chiave da un Secret esterno è necessario aggiungere una coppia chiave/valore nel blocco "job.envFromSecrets" nel file _values.yaml_ specifico per il Cronjob.
-La coppia chiave/valore deve essere così definita:
-* Chiave: è mappata con il nome (name) della variabile d'ambiente utilizzata dal Cronjob
-* Valore: è composto da due valori separati dal carattere "."; il primo valore rappresenta il nome del Secret esterno referenziato, il secondo valore è la chiave desiderata definita nel Secret
+To reference a key from an external Secret, a key/value pair must be added to the "cronjob.envFromSecrets" block in the CronJob-specific _values.yaml_ file.
+The key/value pair must be defined as follows:
+* Key: mapped to the name of the environment variable used by the CronJob
+* Value: composed of two values separated by "."; the first value is the name of the referenced external Secret, the second value is the desired key defined in the Secret
 
-Definendo la seguente configurazione d'esempio nel _values.yaml_ del Cronjob, ad esempio "dashboard-metrics-report-generator" per ambiente "qa":
+Given the following example configuration in the CronJob _values.yaml_, e.g. "dashboard-metrics-report-generator" for environment "qa":
 
 ```
 # /jobs/dashboard-metrics-report-generator/qa/values.yaml
@@ -110,7 +111,7 @@ job:
     CUSTOM_LABEL: "external-secret-name.REFERENCED_LABEL"
 ```
 
-sarà aggiunto un riferimento nel Cronjob nella sezione _env_:
+a reference will be added to the CronJob in the _env_ section:
 
 ```
 - name: CUSTOM_LABEL
@@ -120,13 +121,13 @@ sarà aggiunto un riferimento nel Cronjob nella sezione _env_:
         key: REFERENCED_LABEL
 ```
 
-Non c'è limite al numero di variabili d'ambiente configurabili nella sezione "envFromSecrets".
+There is no limit to the number of environment variables configurable in the "envFromSecrets" section.
 
 
-#### 1.1.4 <ins>env - Definire variabili d'ambiente custom</ins>
+#### 1.1.4 <ins>env - Define custom environment variables</ins>
 
-Per definire una variabile d'ambiente custom per il Cronjob è necessario aggiungere una coppia chiave/valore nel blocco "job.env" nel file _values.yaml_ specifico per il Cronjob.
-Definendo la seguente configurazione d'esempio al file _values.yaml_ del Cronjob, ad esempio "dashboard-metrics-report-generator" per ambiente "qa":
+To define a custom environment variable for the CronJob, a key/value pair must be added to the "cronjob.env" block in the CronJob-specific _values.yaml_ file.
+Given the following example configuration in the CronJob _values.yaml_, e.g. "dashboard-metrics-report-generator" for environment "qa":
 
 ```
 # /jobs/dashboard-metrics-report-generator/qa/values.yaml
@@ -136,7 +137,7 @@ job:
     ENV_NAME: "ENV_VALUE"
 ```
 
-sarà aggiunto un riferimento nel Cronjob nella sezione _env_:
+a reference will be added to the CronJob in the _env_ section:
 
 ```
 - env:
@@ -144,12 +145,12 @@ sarà aggiunto un riferimento nel Cronjob nella sezione _env_:
     value: "ENV_VALUE"
 ```
 
-Non c'è limite al numero di variabili d'ambiente configurabili nella sezione "env".
+There is no limit to the number of environment variables configurable in the "env" section.
 
-#### 1.1.5 <ins>envFromFieldRef - Referenziare informazioni del Pod</ins>
+#### 1.1.5 <ins>envFromFieldRef - Reference Pod information</ins>
 
-Per esporre dei campi del Pod al runtime del container, è possibile utilizzare il campo "fieldRef", come da [documentazione](https://kubernetes.io/docs/concepts/workloads/pods/downward-api/#downwardapi-fieldRef) ufficiale Kubernetes.
-Un campo esposto con "fieldRef" può essere referenziato dal file di configurazione K8s di un Cronjob, ad esempio "dashboard-metrics-report-generator" per ambiente "qa", inserendo la seguente configurazione nel file _values.yaml_ come segue:
+To expose Pod fields at container runtime, you can use the "fieldRef" field, as described in the official Kubernetes [documentation](https://kubernetes.io/docs/concepts/workloads/pods/downward-api/#downwardapi-fieldRef).
+A field exposed via "fieldRef" can be referenced in the K8s configuration file of a CronJob, e.g. "dashboard-metrics-report-generator" for environment "qa", by adding the following configuration to the _values.yaml_ file:
 
 ```
 # /jobs/dashboard-metrics-report-generator/qa/values.yaml
@@ -159,7 +160,7 @@ job:
     NAMESPACE: "metadata.namespace"
 ```
 
-Tale configurazione è mappata nel Cronjob in questo modo:
+This configuration is mapped in the CronJob as follows:
 
 ```
 env:
@@ -169,14 +170,14 @@ env:
        fieldPath: "metadata.namespace"
 ```
 
-Non c'è limite al numero di variabili d'ambiente configurabili nella sezione "envFromFieldRef".
+There is no limit to the number of environment variables configurable in the "envFromFieldRef" section.
 
-### 1.2 Volumi
+### 1.2 Volumes
 
-Di seguito sono descritte le configurazioni da aggiungere al file _values.yaml_ del Cronjob per aggiungere uno o più volume e volumeMounts.
+The following describes the configurations to add to the CronJob _values.yaml_ file to add one or more volumes and volumeMounts.
 
 **Volumes**
-Seguendo la documentazione Kubernetes ufficiale in merito ai [Volumes](https://kubernetes.io/docs/concepts/storage/volumes/), per aggiungere un volume è necessario aggiornare il file _values.yaml_ del Cronjob da configurare, ad esempio "dashboard-metrics-report-generator" per ambiente "qa", utilizzando la seguente sintassi:
+Following the official Kubernetes documentation on [Volumes](https://kubernetes.io/docs/concepts/storage/volumes/), to add a volume the _values.yaml_ file of the CronJob to be configured must be updated, e.g. "dashboard-metrics-report-generator" for environment "qa", using the following syntax:
 
 ```
 # /jobs/dashboard-metrics-report-generator/qa/values.yaml
@@ -187,10 +188,10 @@ job:
       emptyDir: {}
 ```
 
-Il campo "volumes" può contenere la definizione di uno o più oggetti.
+The "volumes" field can contain the definition of one or more objects.
 
 **Volume Mounts**
-Per aggiungere un volumeMounts relativo ad un volume configurato, è necessario aggiornare il file _values.yaml_ del Cronjob, ad esempio "dashboard-metrics-report-generator" per ambiente "qa", utilizzando la seguente sintassi:
+To add a volumeMount for a configured volume, the CronJob _values.yaml_ file must be updated, e.g. "dashboard-metrics-report-generator" for environment "qa", using the following syntax:
 
 ```
 # /jobs/dashboard-metrics-report-generator/qa/values.yaml
@@ -201,7 +202,103 @@ job:
       mountPath: /opt/docker/index/categories
 ```
 
-Il campo "volumeMounts" può contenere la definizione di uno o più oggetti.
+The "volumeMounts" field can contain the definition of one or more objects.
+
+---
+
+## 2. FlywayInitContainer Configuration
+
+The `flywayInitContainer` is an optional init container that runs database migrations via [Flyway](https://flywaydb.org/) before the main container starts.
+
+To enable it, set `cronjob.flywayInitContainer.create: true` and configure at least `cronjob.flywayInitContainer.image.repositoryName`.
+
+### 2.1 Image
+
+The Flyway container image is built from the following fields:
+
+| Field | Default behaviour |
+|-------|-------------------|
+| `image.repositoryPrefix` | If not set, defaults to `cronjob.image.repositoryPrefix` |
+| `image.repositoryName` | **Required** when `create` is `true` |
+| `image.tag` | If not set, defaults to `cronjob.image.tag` |
+| `image.digest` | If set, overrides `image.tag` |
+
+Example:
+
+```yaml
+cronjob:
+  flywayInitContainer:
+    create: true
+    image:
+      repositoryName: "interop-flyway-migrations"
+      tag: "1.2.3"
+```
+
+### 2.2 Flyway Actions
+
+You can control which Flyway commands are executed via the `executeFlywayMigrate` and `executeFlywayRepair` flags.
+
+| Configuration | Executed action |
+|---------------|-----------------|
+| `executeFlywayMigrate: true`, `executeFlywayRepair: false` | `migrate` |
+| `executeFlywayMigrate: false`, `executeFlywayRepair: true` | `repair` |
+| `executeFlywayMigrate: true`, `executeFlywayRepair: true` | `repair` followed by `migrate` |
+| both `false` | **Error** — at least one action must be enabled |
+
+### 2.3 Migration Paths
+
+There are two mutually exclusive ways to provide SQL migration files:
+
+#### 2.3.1 migrationPaths
+
+Allows you to specify a comma-separated list of paths (files or directories):
+
+```yaml
+cronjob:
+  flywayInitContainer:
+    migrationPaths: "/migrations/a_directory,v1_migration.sql,/migrations/b_directory"
+```
+
+The value is passed to the container as the `INTERNAL_FLYWAY_MIGRATIONS_PATHS` environment variable.
+
+#### 2.3.2 migrationsConfigmap
+
+Allows you to mount a ConfigMap containing migration files into the `/flyway/sql` directory:
+
+```yaml
+cronjob:
+  flywayInitContainer:
+    migrationsConfigmap: "my-migrations-configmap"
+```
+
+> **Note:** `migrationPaths` and `migrationsConfigmap` cannot be defined at the same time.
+
+### 2.4 Resources
+
+If not set, the Flyway container uses the same resources defined in `cronjob.resources`. They can be overridden by specifying:
+
+```yaml
+cronjob:
+  flywayInitContainer:
+    resources:
+      requests:
+        cpu: "100m"
+        memory: "128Mi"
+      limits:
+        cpu: "200m"
+        memory: "256Mi"
+```
+
+### 2.5 Environment Variables
+
+The `flywayInitContainer` supports the same environment variable configuration modes as the main container:
+
+- `env` — direct values
+- `envFromConfigmaps` — references to keys from external ConfigMaps
+- `envFromSecrets` — references to keys from external Secrets
+- `envFromFieldRef` — Pod fields (downward API)
+
+Refer to sections [1.1.2](#112-envfromconfigmaps---reference-an-external-configmap), [1.1.3](#113-envfromsecrets---reference-an-external-secret), [1.1.4](#114-env---define-custom-environment-variables) and [1.1.5](#115-envfromfieldref---reference-pod-information) for the syntax.
 
 ---
 

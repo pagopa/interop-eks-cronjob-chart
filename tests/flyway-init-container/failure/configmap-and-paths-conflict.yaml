@@ -1,0 +1,17 @@
+# migrationsConfigmap e migrationPaths entrambi impostati -> il template deve fallire
+# Verifica: helm template deve restituire un errore con il messaggio:
+#   "Invalid configuration - Both migrationsConfigmap and migrationPaths in flywayInitContainer
+#    cannot be defined at the same time."
+#
+# helm template charts/interop-eks-cronjob-chart -f tests/flyway-init-container/base-values.yaml -f tests/flyway-init-container/failure/configmap-and-paths-conflict.yaml
+#
+# Verifica: il comando deve uscire con codice != 0 e stampare il messaggio di errore atteso.
+
+cronjob:
+  flywayInitContainer:
+    create: true
+    image:
+      repositoryName: interop-flyway-migrations
+    executeFlywayMigrate: true
+    migrationsConfigmap: my-migrations-configmap
+    migrationPaths: "/migrations/v1"

@@ -1,0 +1,15 @@
+# downloadRedshiftDriver=true -> INTERNAL_DOWNLOAD_REDSHIFT_DRIVER="true"
+# Verifica: env var INTERNAL_DOWNLOAD_REDSHIFT_DRIVER deve avere valore "true".
+#
+# helm template charts/interop-eks-cronjob-chart -f tests/flyway-init-container/base-values.yaml -f tests/flyway-init-container/success/ts-10-redshift-driver-enabled.yaml
+#
+# Verifica manuale output:
+#   | grep "INTERNAL_DOWNLOAD_REDSHIFT_DRIVER" -A1 -> deve mostrare value: "true"
+
+cronjob:
+  flywayInitContainer:
+    create: true
+    image:
+      repositoryName: interop-flyway-migrations
+    executeFlywayMigrate: true
+    downloadRedshiftDriver: true

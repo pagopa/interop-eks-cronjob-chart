@@ -1,0 +1,12 @@
+# migrationPaths impostato come intero invece di stringa
+#
+# helm template charts/interop-eks-cronjob-chart -f tests/flyway-init-container/base-values.yaml -f tests/flyway-init-container/failure/schema-migration-paths-wrong-type.yaml
+
+
+cronjob:
+  flywayInitContainer:
+    create: true
+    image:
+      repositoryName: interop-flyway-migrations
+    executeFlywayMigrate: true
+    migrationPaths: 1234    # intero invece di stringa → tipo errato

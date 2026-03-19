@@ -1,0 +1,27 @@
+# Base values shared across all tests.
+# Always pass this file first, then the specific test file:
+#   helm template charts/interop-eks-cronjob-chart -f tests/flyway-init-container/base-values.yaml -f tests/flyway-init-container/success/ts-02-migrate.yaml
+#   helm lint   charts/interop-eks-cronjob-chart -f tests/flyway-init-container/base-values.yaml -f tests/flyway-init-container/success/ts-02-migrate.yaml
+
+name: test-cronjob
+namespace: test-ns
+
+serviceAccount:
+  roleArn: "arn:aws:iam::123456789012:role/test-role"
+
+cronjob:
+  schedule: "0 * * * *"
+  image:
+    repositoryPrefix: my-registry.example.com
+    repositoryName: my-app
+    imagePullPolicy: Always
+    tag: "1.0.0"
+  resources:
+    requests:
+      cpu: "100m"
+      memory: "128Mi"
+    limits:
+      cpu: "200m"
+      memory: "256Mi"
+  flywayInitContainer:
+    create: false

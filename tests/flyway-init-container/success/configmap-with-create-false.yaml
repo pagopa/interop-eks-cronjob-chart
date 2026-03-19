@@ -1,0 +1,14 @@
+# migrationsConfigmap impostato ma create=false → volume "migrations-files"
+#            NON viene renderizzato ma il campo è semanticamente inconsistente.
+# Con create=false il blocco flywayInitContainer viene completamente saltato,
+# quindi migrationsConfigmap non produce né volume né volumeMount.
+# Il test verifica che l'output NON contenga riferimenti a "migrations-files"
+#
+# helm template charts/interop-eks-cronjob-chart -f tests/flyway-init-container/base-values.yaml -f tests/flyway-init-container/success/configmap-with-create-false.yaml
+#   | grep "migrations-files"  -> deve restituire 0 righe (il volume non viene creato)
+
+cronjob:
+  flywayInitContainer:
+    create: false                               # initContainer disabilitato
+    migrationsConfigmap: my-migrations-configmap  # impostato ma ignorato silenziosamente
+    executeFlywayMigrate: true

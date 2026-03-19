@@ -1,0 +1,34 @@
+# cronjob.image.tag=null e cronjob.image.digest=null -> fail() esplicito
+#
+# Nota: questo test NON usa base-values.yaml perché occorre sovrascrivere
+#       image.tag a null esplicitamente (il merge Helm non lo consente via secondo file).
+#
+# Errore atteso:
+#   "One of cronjob.image.tag and cronjob.image.digest must be defined."
+#
+# helm template charts/interop-eks-cronjob-chart -f tests/general/failure/no-main-image-ref.yaml
+# Atteso: exit code != 0
+
+name: test-cronjob
+namespace: test-ns
+
+serviceAccount:
+  roleArn: "arn:aws:iam::123456789012:role/test-role"
+
+cronjob:
+  schedule: "0 * * * *"
+  image:
+    repositoryPrefix: my-registry.example.com
+    repositoryName: my-app
+    imagePullPolicy: Always
+    tag: ~
+    digest: ~
+  resources:
+    requests:
+      cpu: "100m"
+      memory: "128Mi"
+    limits:
+      cpu: "200m"
+      memory: "256Mi"
+  flywayInitContainer:
+    create: false
