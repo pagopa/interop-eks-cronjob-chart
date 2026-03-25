@@ -302,3 +302,24 @@ Refer to sections [1.1.2](#112-envfromconfigmaps---reference-an-external-configm
 
 ---
 
+## 3. ServiceAccount Configuration
+
+You can optionally set `serviceAccount.roleArn` to add the `eks.amazonaws.com/role-arn` annotation to the generated ServiceAccount.
+
+When `serviceAccount.roleArn` is not set (or empty), no annotation is added.
+
+Example:
+
+```yaml
+serviceAccount:
+  roleArn: "arn:aws:iam::123456789012:role/my-irsa-role"
+```
+
+The resulting ServiceAccount metadata includes:
+
+```yaml
+annotations:
+  eks.amazonaws.com/role-arn: "arn:aws:iam::123456789012:role/my-irsa-role"
+```
+
+

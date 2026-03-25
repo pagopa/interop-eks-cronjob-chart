@@ -178,6 +178,19 @@
     "namespace": {
       "description": "Kubernetes namespace",
       "type": "string"
+    },
+    "serviceAccount": {
+      "description": "ServiceAccount configuration",
+      "type": "object",
+      "properties": {
+        "roleArn": {
+          "description": "Optional IAM Role ARN used for eks.amazonaws.com/role-arn annotation",
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
     }
   },
   "required": [

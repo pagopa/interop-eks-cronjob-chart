@@ -6,7 +6,7 @@ name:
 namespace:
 
 serviceAccount:
-  # -- (string) ServiceAccount roleARN used for eks.amazonaws.com/role-arn annotation
+  # -- (string) Optional IAM Role ARN for ServiceAccount annotation eks.amazonaws.com/role-arn (supports templating)
   roleArn:
 
 cronjob:

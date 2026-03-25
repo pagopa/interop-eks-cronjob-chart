@@ -48,7 +48,7 @@ The following table lists the configurable parameters of the Interop-eks-cronjob
 | cronjob.timeZone | string | `nil` | [Time zone](https://kubernetes.io/docs/concepts/workloads/controllers/cron-jobs/#time-zones) to use when calculating schedule |
 | name | string | `nil` | Name of the service that will be deployed on K8s cluster |
 | namespace | string | `nil` | Namespace hosting the service that will be deployed on K8s cluster |
-| serviceAccount.roleArn | string | `nil` | ServiceAccount roleARN used for eks.amazonaws.com/role-arn annotation |
+| serviceAccount.roleArn | string | `nil` | Optional IAM Role ARN for ServiceAccount annotation eks.amazonaws.com/role-arn (supports templating) |
 
 ## 1. CronJob Configuration
 
@@ -336,4 +336,24 @@ The `flywayInitContainer` supports the same environment variable configuration m
 Refer to sections [1.1.2](#112-envfromconfigmaps---reference-an-external-configmap), [1.1.3](#113-envfromsecrets---reference-an-external-secret), [1.1.4](#114-env---define-custom-environment-variables) and [1.1.5](#115-envfromfieldref---reference-pod-information) for the syntax.
 
 ---
+
+## 3. ServiceAccount Configuration
+
+You can optionally set `serviceAccount.roleArn` to add the `eks.amazonaws.com/role-arn` annotation to the generated ServiceAccount.
+
+When `serviceAccount.roleArn` is not set (or empty), no annotation is added.
+
+Example:
+
+```yaml
+serviceAccount:
+  roleArn: "arn:aws:iam::123456789012:role/my-irsa-role"
+```
+
+The resulting ServiceAccount metadata includes:
+
+```yaml
+annotations:
+  eks.amazonaws.com/role-arn: "arn:aws:iam::123456789012:role/my-irsa-role"
+```
 
