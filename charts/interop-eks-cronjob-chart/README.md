@@ -46,6 +46,16 @@ The following table lists the configurable parameters of the Interop-eks-cronjob
 | cronjob.successfulJobsHistoryLimit | int | 0 | [successfulJobsHistoryLimit](https://kubernetes.io/docs/concepts/workloads/controllers/cron-jobs/#jobs-history-limits) field specifies the number of successful finished jobs to keep. Setting this field to 0 will not keep any successful jobs |
 | cronjob.suspend | boolean | `false` | [suspend](https://kubernetes.io/docs/concepts/workloads/controllers/cron-jobs/#schedule-suspension) field allows to suspend execution of Jobs for a CronJob.  @default -- false. |
 | cronjob.timeZone | string | `nil` | [Time zone](https://kubernetes.io/docs/concepts/workloads/controllers/cron-jobs/#time-zones) to use when calculating schedule |
+| externalSecrets.create | bool | `false` | Enable ExternalSecret creation |
+| externalSecrets.data | list | `[]` | List of individual secret keys to sync from external secret manager |
+| externalSecrets.dataFrom | string | `nil` |  |
+| externalSecrets.refreshInterval | string | `"0"` | Refresh interval for the secret (e.g., "1h", "30m") |
+| externalSecrets.refreshPolicy | string | `"OnChange"` | Refresh policy for the secret, allowed values: [ "OnChange", "Interval" ] |
+| externalSecrets.secretStoreRef | object | `{"kind":"SecretStore","name":""}` | Reference to SecretStore or ClusterSecretStore |
+| externalSecrets.targetSecret | object | `{"creationPolicy":"Merge","deletionPolicy":"Retain","name":""}` | Target Kubernetes Secret configuration |
+| externalSecrets.targetSecret.creationPolicy | string | `"Merge"` | Creation policy: Owner, Orphan, Merge, None |
+| externalSecrets.targetSecret.deletionPolicy | string | `"Retain"` | Deletion policy: Retain, Delete |
+| externalSecrets.targetSecret.name | string | `""` | Name of the target secret (defaults to cronjob name) |
 | name | string | `nil` | Name of the service that will be deployed on K8s cluster |
 | namespace | string | `nil` | Namespace hosting the service that will be deployed on K8s cluster |
 | serviceAccount.roleArn | string | `nil` | Optional IAM Role ARN for ServiceAccount annotation eks.amazonaws.com/role-arn (supports templating) |
@@ -356,4 +366,139 @@ The resulting ServiceAccount metadata includes:
 annotations:
   eks.amazonaws.com/role-arn: "arn:aws:iam::123456789012:role/my-irsa-role"
 ```
+
+---
+
+## 4. External Secrets Configuration
+
+The chart supports [External Secrets Operator](https://external-secrets.io/) through the `externalSecrets` block.
+
+When `externalSecrets.create: true`, the chart renders:
+
+- an `ExternalSecret` resource
+- a contract `Secret` (opaque, with empty `stringData`) used as a deterministic target and rollout marker
+
+Both resources point to the same target Secret name (`externalSecrets.targetSecret.name` or, by default, `name`).
+
+### 4.1 Enable and Required Fields
+
+Minimal configuration:
+
+```yaml
+externalSecrets:
+  create: true
+  secretStoreRef:
+    name: my-secret-store
+```
+
+`secretStoreRef.name` is required when `create` is enabled.
+
+### 4.2 Refresh and Target Secret Policies
+
+- `refreshPolicy`: `OnChange` (default) or `Interval`
+- `refreshInterval`: duration string (default `"0"`)
+- `targetSecret.creationPolicy`: `Owner`, `Orphan`, `Merge`, `None` (default `Merge`)
+- `targetSecret.deletionPolicy`: `Retain`, `Delete` (default `Retain`)
+
+Example:
+
+```yaml
+externalSecrets:
+  create: true
+  refreshPolicy: Interval
+  refreshInterval: 1h
+  secretStoreRef:
+    name: my-secret-store
+    kind: ClusterSecretStore
+  targetSecret:
+    name: "my-service-es"
+    creationPolicy: Merge
+    deletionPolicy: Retain
+```
+
+### 4.3 `data`: Explicit Key Mapping
+
+Use `data` to map specific remote values to specific keys in the Kubernetes Secret.
+
+Each item requires:
+
+- `secretKey`
+- `remoteRef.key`
+- `remoteRef.property`
+
+Optional remote fields: `version`, `conversionStrategy`, `decodingStrategy`.
+
+```yaml
+externalSecrets:
+  create: true
+  secretStoreRef:
+    name: my-secret-store
+  data:
+    - secretKey: username
+      remoteRef:
+        key: "/my-app/db"
+        property: username
+    - secretKey: password
+      remoteRef:
+        key: "/my-app/db"
+        property: password
+        version: AWSCURRENT
+```
+
+### 4.4 `dataFrom`: Bulk Fetch
+
+Use `dataFrom` to import all key/value pairs from a source.
+Each list entry must contain exactly one of:
+
+- `extract`
+- `find`
+- `sourceRef`
+
+`rewrite` rules are supported for `extract` and `find` entries.
+
+```yaml
+externalSecrets:
+  create: true
+  secretStoreRef:
+    name: my-secret-store
+  dataFrom:
+    - extract:
+        key: my-app/prod/config
+      rewrite:
+        - regexp:
+            source: "my-app/prod/(.*)"
+            target: "$1"
+    - find:
+        path: my-app/prod/
+        name:
+          regexp: "^my-app/prod/.*"
+    - sourceRef:
+        generatorRef:
+          apiVersion: generators.external-secrets.io/v1alpha1
+          kind: Password
+          name: my-password-generator
+```
+
+### 4.5 Template Support
+
+The chart evaluates Helm templates in these `externalSecrets` fields:
+
+- `secretStoreRef.name`
+- `targetSecret.name`
+- `data[].remoteRef.key`
+- `data[].remoteRef.property`
+- `dataFrom[].extract.key`
+- `dataFrom[].extract.property`
+- `dataFrom[].find.path`
+- `dataFrom[].sourceRef.generatorRef.name`
+
+This allows environment-aware naming conventions directly in values files.
+
+### 4.6 Labels, Annotations, and Contract Marker
+
+- `externalSecrets.labels` and `externalSecrets.annotations` are applied to the `ExternalSecret` metadata.
+- The chart adds a hash marker annotation (`externalsecret/secret-data-hash`) on the generated `Secret`.
+- When `data` or `dataFrom` are configured, the `ExternalSecret.target.template.metadata.annotations` includes `externalsecret/secret-applied-hash`.
+
+These markers are used to keep a stable contract between rendered resources and applied secret content.
 
