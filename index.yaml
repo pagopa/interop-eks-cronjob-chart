@@ -3,6 +3,16 @@ entries:
   interop-eks-cronjob-chart:
   - apiVersion: v2
     appVersion: 1.0.0
+    created: "2026-04-01T12:17:22.134274209Z"
+    description: A Helm chart for PagoPa Interop CronJobs
+    digest: 3e91f2abb20ad5e59306e6744bf87b85b7a66838e179cc3d746d738813ec24a2
+    name: interop-eks-cronjob-chart
+    type: application
+    urls:
+    - https://github.com/pagopa/interop-eks-cronjob-chart/releases/download/interop-eks-cronjob-chart-1.13.0/interop-eks-cronjob-chart-1.13.0.tgz
+    version: 1.13.0
+  - apiVersion: v2
+    appVersion: 1.0.0
     created: "2026-03-25T13:11:26.242235312Z"
     description: A Helm chart for PagoPa Interop CronJobs
     digest: 8172d5445ee91aff733f10f7505c01305785dae13566e166ea9760688212610d
@@ -291,4 +301,4 @@ entries:
     urls:
     - https://github.com/pagopa/interop-eks-cronjob-chart/releases/download/interop-eks-cronjob-chart-1.0.0/interop-eks-cronjob-chart-1.0.0.tgz
     version: 1.0.0
-generated: "2026-03-25T13:11:26.242527977Z"
+generated: "2026-04-01T12:17:22.134545123Z"
