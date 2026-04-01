@@ -121,8 +121,8 @@ Usage:
 {{- end -}}
 
 {{/*
-Contract marker for ExternalSecrets. 
-This is used to detect changes in the contract between the chart and ExternalSecrets. 
+Contract marker for ExternalSecrets.
+This is used to detect changes in the contract between the chart and ExternalSecrets.
 If the contract changes, the hash will change, and ExternalSecrets can trigger a rollout of the CronJob to pick up the changes.
 */}}
 {{- define "externalsecrets.contractMarker" -}}
