@@ -302,3 +302,159 @@ Refer to sections [1.1.2](#112-envfromconfigmaps---reference-an-external-configm
 
 ---
 
+## 3. ServiceAccount Configuration
+
+You can optionally set `serviceAccount.roleArn` to add the `eks.amazonaws.com/role-arn` annotation to the generated ServiceAccount.
+
+When `serviceAccount.roleArn` is not set (or empty), no annotation is added.
+
+Example:
+
+```yaml
+serviceAccount:
+  roleArn: "arn:aws:iam::123456789012:role/my-irsa-role"
+```
+
+The resulting ServiceAccount metadata includes:
+
+```yaml
+annotations:
+  eks.amazonaws.com/role-arn: "arn:aws:iam::123456789012:role/my-irsa-role"
+```
+
+---
+
+## 4. External Secrets Configuration
+
+The chart supports [External Secrets Operator](https://external-secrets.io/) through the `externalSecrets` block.
+
+When `externalSecrets.create: true`, the chart renders:
+
+- an `ExternalSecret` resource
+- a contract `Secret` (opaque, with empty `stringData`) used as a deterministic target and rollout marker
+
+Both resources point to the same target Secret name (`externalSecrets.targetSecret.name` or, by default, `name`).
+
+### 4.1 Enable and Required Fields
+
+Minimal configuration:
+
+```yaml
+externalSecrets:
+  create: true
+  secretStoreRef:
+    name: my-secret-store
+```
+
+`secretStoreRef.name` is required when `create` is enabled.
+
+### 4.2 Refresh and Target Secret Policies
+
+- `refreshPolicy`: `OnChange` (default) or `Interval`
+- `refreshInterval`: duration string (default `"0"`)
+- `targetSecret.creationPolicy`: `Owner`, `Orphan`, `Merge`, `None` (default `Merge`)
+- `targetSecret.deletionPolicy`: `Retain`, `Delete` (default `Retain`)
+
+Example:
+
+```yaml
+externalSecrets:
+  create: true
+  refreshPolicy: Interval
+  refreshInterval: 1h
+  secretStoreRef:
+    name: my-secret-store
+    kind: ClusterSecretStore
+  targetSecret:
+    name: "my-service-es"
+    creationPolicy: Merge
+    deletionPolicy: Retain
+```
+
+### 4.3 `data`: Explicit Key Mapping
+
+Use `data` to map specific remote values to specific keys in the Kubernetes Secret.
+
+Each item requires:
+
+- `secretKey`
+- `remoteRef.key`
+- `remoteRef.property`
+
+Optional remote fields: `version`, `conversionStrategy`, `decodingStrategy`.
+
+```yaml
+externalSecrets:
+  create: true
+  secretStoreRef:
+    name: my-secret-store
+  data:
+    - secretKey: username
+      remoteRef:
+        key: "/my-app/db"
+        property: username
+    - secretKey: password
+      remoteRef:
+        key: "/my-app/db"
+        property: password
+        version: AWSCURRENT
+```
+
+### 4.4 `dataFrom`: Bulk Fetch
+
+Use `dataFrom` to import all key/value pairs from a source.
+Each list entry must contain exactly one of:
+
+- `extract`
+- `find`
+- `sourceRef`
+
+`rewrite` rules are supported for `extract` and `find` entries.
+
+```yaml
+externalSecrets:
+  create: true
+  secretStoreRef:
+    name: my-secret-store
+  dataFrom:
+    - extract:
+        key: my-app/prod/config
+      rewrite:
+        - regexp:
+            source: "my-app/prod/(.*)"
+            target: "$1"
+    - find:
+        path: my-app/prod/
+        name:
+          regexp: "^my-app/prod/.*"
+    - sourceRef:
+        generatorRef:
+          apiVersion: generators.external-secrets.io/v1alpha1
+          kind: Password
+          name: my-password-generator
+```
+
+### 4.5 Template Support
+
+The chart evaluates Helm templates in these `externalSecrets` fields:
+
+- `secretStoreRef.name`
+- `targetSecret.name`
+- `data[].remoteRef.key`
+- `data[].remoteRef.property`
+- `dataFrom[].extract.key`
+- `dataFrom[].extract.property`
+- `dataFrom[].find.path`
+- `dataFrom[].sourceRef.generatorRef.name`
+
+This allows environment-aware naming conventions directly in values files.
+
+### 4.6 Labels, Annotations, and Contract Marker
+
+- `externalSecrets.labels` and `externalSecrets.annotations` are applied to the `ExternalSecret` metadata.
+- The chart adds a hash marker annotation (`externalsecret/secret-data-hash`) on the generated `Secret`.
+- When `data` or `dataFrom` are configured, the `ExternalSecret.target.template.metadata.annotations` includes `externalsecret/secret-applied-hash`.
+
+These markers are used to keep a stable contract between rendered resources and applied secret content.
+
+

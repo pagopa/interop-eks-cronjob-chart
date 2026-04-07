@@ -119,3 +119,14 @@ Usage:
   {{- $value -}}
 {{- end -}}
 {{- end -}}
+
+{{/*
+Contract marker for ExternalSecrets.
+This is used to detect changes in the contract between the chart and ExternalSecrets.
+If the contract changes, the hash will change, and ExternalSecrets can trigger a rollout of the CronJob to pick up the changes.
+*/}}
+{{- define "externalsecrets.contractMarker" -}}
+{{- $data := .Values.externalSecrets.data | default list -}}
+{{- $dataFrom := .Values.externalSecrets.dataFrom | default list -}}
+{{- printf "%s|%s" (toJson $data) (toJson $dataFrom) | sha256sum -}}
+{{- end -}}
