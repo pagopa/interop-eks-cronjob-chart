@@ -445,6 +445,8 @@ externalSecrets:
         version: AWSCURRENT
 ```
 
+> **Auto env injection:** when `externalSecrets.create: true` and `data` is non-empty, the chart automatically adds one `env` entry per `secretKey` to the main CronJob container. Each entry is a `secretKeyRef` pointing to the target Secret. The env variable name equals the `secretKey` value. This means you do **not** need to manually define `cronjob.envFromSecrets` for keys listed in `externalSecrets.data`.
+
 ### 4.4 `dataFrom`: Bulk Fetch
 
 Use `dataFrom` to import all key/value pairs from a source.
@@ -500,5 +502,63 @@ This allows environment-aware naming conventions directly in values files.
 - The chart adds a hash marker annotation (`externalsecret/secret-data-hash`) on the generated `Secret`.
 - When `data` or `dataFrom` are configured, the `ExternalSecret.target.template.metadata.annotations` includes `externalsecret/secret-applied-hash`.
 
-These markers are used to keep a stable contract between rendered resources and applied secret content.
+Both annotations carry the same SHA-256 hash, computed from the JSON-serialized content of `data` and `dataFrom`. The hash changes whenever the secret mapping changes, which can be used to trigger CronJob Pod restarts or detect drift.
+
+---
+
+## 4.7 Integration with the CronJob Container
+
+When `externalSecrets.create: true`, the chart renders three interconnected resources that work together:
+
+### 4.7.1 Generated Resources
+
+| Resource | Kind | Name |
+|----------|------|------|
+| `externalSecret.yaml` | `ExternalSecret` | `.Values.name` |
+| `secret.yaml` | `Secret` (contract) | `externalSecrets.targetSecret.name` or `.Values.name` |
+| `cronjob.yaml` | `CronJob` | `.Values.name` |
+
+### 4.7.2 Contract Secret (`secret.yaml`)
+
+The chart always renders a bare Kubernetes `Secret` alongside the `ExternalSecret`. This contract Secret:
+
+- has `type: Opaque` and empty `stringData: {}`
+- is managed by the chart (not by ESO), so it exists from the first `helm install`
+- carries the annotation `externalsecret/secret-data-hash: <sha256>`, computed from `data` + `dataFrom`
+
+This ensures the target Secret is present in the cluster before the CronJob Pod is scheduled, preventing `secretKeyRef` mount failures on first deployment.
+
+```yaml
+apiVersion: v1
+kind: Secret
+metadata:
+  name: my-service        # = externalSecrets.targetSecret.name or .Values.name
+  annotations:
+    externalsecret/secret-data-hash: "<sha256 of data+dataFrom>"
+type: Opaque
+stringData: {}
+```
+
+### 4.7.3 ExternalSecret (`externalSecret.yaml`)
+
+The `ExternalSecret` targets the **same Secret** rendered by `secret.yaml` (via `spec.target.name`). ESO will merge/overwrite its keys into that Secret according to `targetSecret.creationPolicy`.
+
+When `data` or `dataFrom` is set, the `ExternalSecret` also sets `spec.target.template.metadata.annotations.externalsecret/secret-applied-hash` to the same hash, allowing comparison between the chart-rendered value (`secret-data-hash`) and the ESO-applied value (`secret-applied-hash`) to detect drift.
+
+### 4.7.4 CronJob env injection (`cronjob.yaml`)
+
+When `externalSecrets.create: true` **and** `data` is non-empty, the chart automatically injects one `env` entry per `secretKey` into the main container:
+
+```yaml
+env:
+  - name: username          # = secretKey
+    valueFrom:
+      secretKeyRef:
+        name: my-service    # = externalSecrets.targetSecret.name or .Values.name
+        key: username       # = secretKey
+```
+
+This injection is **additive**: it coexists with `cronjob.envFromSecrets`, `cronjob.envFromConfigmaps`, `cronjob.env`, and `configmap` entries without conflicts. Keys from `dataFrom` are **not** auto-injected (their names are not known at render time).
+
+> **Note:** `dataFrom` keys are fetched at runtime by ESO and are available in the Secret, but must be referenced manually via `cronjob.envFromSecrets` if needed as env vars.
 
