@@ -5,6 +5,6 @@ cronjob:
       repositoryName: interop-flyway-migrations
     executeFlywayMigrate: true
     executeFlywayRepair: false
-    # se entrambe configurate deve fallire
+
     migrationPaths: /flyway_fail_migrationpaths_and_configmap/migrations/v1_migrations
     migrationsConfigmap: common-db-migrations
