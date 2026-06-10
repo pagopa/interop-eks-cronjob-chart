@@ -1,0 +1,9 @@
+cronjob:
+  flywayInitContainer:
+    create: true
+    image:
+      repositoryName: interop-flyway-migrations
+    # se sono entrambe false = no actions deve fallire
+    executeFlywayMigrate: false
+    executeFlywayRepair: false
+    migrationPaths: /flyway_fail_no_actions/migrations/v1_migrations

@@ -1,0 +1,8 @@
+cronjob:
+  flywayInitContainer:
+    create: true
+    image:
+      repositoryPrefix: flyway-registry.example.com
+      repositoryName: interop-flyway-migrations
+      tag: "2.5.0"
+    executeFlywayMigrate: true

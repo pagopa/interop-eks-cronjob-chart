@@ -1,0 +1,16 @@
+suite: cronjob env
+templates:
+  - templates/cronjob.yaml
+values:
+  - ../common/base.yaml
+
+tests:
+  - it: renders main container templated env
+    set:
+      cronjob.env.TEMPLATED_ENV: "{{ .Values.namespace }}-{{ .Values.name }}"
+    asserts:
+      - contains:
+          path: spec.jobTemplate.spec.template.spec.containers[0].env
+          content:
+            name: TEMPLATED_ENV
+            value: test-namespace-test-cronjob

@@ -1,0 +1,97 @@
+suite: flyway init container
+templates:
+  - templates/cronjob.yaml
+values:
+  - ../common/base.yaml
+
+tests:
+  - it: renders Flyway initContainer with migrate action and default fallbacks
+    values:
+      - flyway-enabled.yaml
+    asserts:
+      - equal:
+          path: spec.jobTemplate.spec.template.spec.initContainers[0].image
+          value: docker.io/library/interop-flyway-migrations:1.36.1
+      - contains:
+          path: spec.jobTemplate.spec.template.spec.initContainers[0].env
+          content:
+            name: INTERNAL_FLYWAY_ACTION
+            value: migrate
+      - notContains:
+          path: spec.jobTemplate.spec.template.spec.initContainers[0].env
+          content:
+            name: INTERNAL_FLYWAY_MIGRATIONS_PATHS
+          any: true
+      - notExists:
+          path: spec.jobTemplate.spec.template.spec.initContainers[0].volumeMounts
+
+  - it: renders Flyway repair action
+    values:
+      - flyway-enabled.yaml
+    set:
+      cronjob.flywayInitContainer.executeFlywayMigrate: false
+      cronjob.flywayInitContainer.executeFlywayRepair: true
+    asserts:
+      - contains:
+          path: spec.jobTemplate.spec.template.spec.initContainers[0].env
+          content:
+            name: INTERNAL_FLYWAY_ACTION
+            value: repair
+
+  - it: renders Flyway repair-and-migrate action
+    values:
+      - flyway-enabled.yaml
+    set:
+      cronjob.flywayInitContainer.executeFlywayRepair: true
+    asserts:
+      - contains:
+          path: spec.jobTemplate.spec.template.spec.initContainers[0].env
+          content:
+            name: INTERNAL_FLYWAY_ACTION
+            value: repair-and-migrate
+
+  - it: renders Flyway migration paths
+    values:
+      - flyway-migrationpaths.yaml
+    asserts:
+      - contains:
+          path: spec.jobTemplate.spec.template.spec.initContainers[0].env
+          content:
+            name: INTERNAL_FLYWAY_MIGRATIONS_PATHS
+            value: /migrations/v1,/migrations/v2
+      - notExists:
+          path: spec.jobTemplate.spec.template.spec.initContainers[0].volumeMounts
+
+  - it: renders Flyway migrations ConfigMap volume
+    values:
+      - flyway-migrations-configmap.yaml
+    asserts:
+      - contains:
+          path: spec.jobTemplate.spec.template.spec.initContainers[0].volumeMounts
+          content:
+            name: migrations-files
+            mountPath: /flyway/sql
+      - equal:
+          path: spec.jobTemplate.spec.template.spec.volumes[0].projected.sources[0].configMap.name
+          value: my-migrations-configmap
+      - notContains:
+          path: spec.jobTemplate.spec.template.spec.initContainers[0].env
+          content:
+            name: INTERNAL_FLYWAY_MIGRATIONS_PATHS
+          any: true
+
+  - it: renders Flyway image override
+    values:
+      - flyway-image-override.yaml
+    asserts:
+      - equal:
+          path: spec.jobTemplate.spec.template.spec.initContainers[0].image
+          value: flyway-registry.example.com/interop-flyway-migrations:2.5.0
+
+  - it: renders Flyway image digest without tag
+    values:
+      - flyway-image-digest.yaml
+    asserts:
+      - equal:
+          path: spec.jobTemplate.spec.template.spec.initContainers[0].image
+          value: docker.io/library/interop-flyway-migrations@sha256:abc123def456

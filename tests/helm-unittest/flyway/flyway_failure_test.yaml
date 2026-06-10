@@ -1,0 +1,19 @@
+suite: flyway failures
+templates:
+  - templates/cronjob.yaml
+values:
+  - ../common/base.yaml
+
+tests:
+    # se entrambe configurate deve fallire
+  - it: fails when both migrationsConfigmap and migrationPaths are configured
+    values:
+      - flyway_fail_migrationpaths_and_configmap.yaml
+    asserts:
+      - failedTemplate: {}
+    # se nessuna azione configurata deve fallire
+  - it: fails when both Flyway actions are disabled
+    values:
+      - flyway_fail_no_actions.yaml
+    asserts:
+      - failedTemplate: {}
