@@ -1,7 +1,0 @@
-cronjob:
-  flywayInitContainer:
-    create: true
-    image:
-      repositoryName: interop-flyway-migrations
-      digest: sha256:abc123def456
-    executeFlywayMigrate: true

@@ -1,0 +1,25 @@
+namespace: flyway-chart-test
+
+serviceAccount:
+  roleArn:
+
+cronjob:
+  schedule: "0 0 31 2 *"
+  image:
+    repositoryPrefix: library
+    repositoryName: busybox
+    tag: latest
+    imagePullPolicy: IfNotPresent
+  command:
+    - sh
+    - -c
+    - echo 'App started after migrations.'
+  resources:
+    requests:
+      cpu: 50m
+      memory: 32Mi
+    limits:
+      cpu: 100m
+      memory: 64Mi
+  flywayInitContainer:
+    create: false

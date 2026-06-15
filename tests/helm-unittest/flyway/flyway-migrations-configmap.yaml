@@ -1,7 +1,0 @@
-cronjob:
-  flywayInitContainer:
-    create: true
-    image:
-      repositoryName: interop-flyway-migrations
-    executeFlywayMigrate: true
-    migrationsConfigmap: my-migrations-configmap
