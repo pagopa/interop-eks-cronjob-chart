@@ -286,7 +286,7 @@
                     "type": "string"
                   }
                 },
-                "required": ["key", "property"],
+                "required": ["key"],
                 "additionalProperties": false
               }
             },
