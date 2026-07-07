@@ -207,7 +207,8 @@ spec:
                 {{- end }}
                 {{- if and .Values.cronjob .Values.cronjob.envFromConfigmaps }}
                 {{- range $key, $val := .Values.cronjob.envFromConfigmaps -}}
-                {{ $configmapAddress := mustRegexSplit "\\." $val 2 }}
+                {{- $renderedVal := include "interop-eks-cronjob-chart.render-template" (dict "value" $val "context" $) }}
+                {{- $configmapAddress := mustRegexSplit "\\." $renderedVal 2 }}
                 - name: {{ $key | quote }}
                   valueFrom:
                     configMapKeyRef:

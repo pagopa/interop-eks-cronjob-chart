@@ -27,3 +27,16 @@ tests:
               secretKeyRef:
                 name: test-cronjob
                 key: SECRET_KEY
+
+  - it: renders main container envFromConfigmaps with a templated configmap address
+    set:
+      cronjob.envFromConfigmaps.CONFIG_ENV: "{{ .Values.name }}.CONFIG_KEY"
+    asserts:
+      - contains:
+          path: spec.jobTemplate.spec.template.spec.containers[0].env
+          content:
+            name: CONFIG_ENV
+            valueFrom:
+              configMapKeyRef:
+                name: test-cronjob
+                key: CONFIG_KEY
