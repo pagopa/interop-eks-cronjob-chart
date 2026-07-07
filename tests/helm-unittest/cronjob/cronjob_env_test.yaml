@@ -14,3 +14,16 @@ tests:
           content:
             name: TEMPLATED_ENV
             value: test-namespace-test-cronjob
+
+  - it: renders main container envFromSecrets with a templated secret address
+    set:
+      cronjob.envFromSecrets.SECRET_ENV: "{{ .Values.name }}.SECRET_KEY"
+    asserts:
+      - contains:
+          path: spec.jobTemplate.spec.template.spec.containers[0].env
+          content:
+            name: SECRET_ENV
+            valueFrom:
+              secretKeyRef:
+                name: test-cronjob
+                key: SECRET_KEY
