@@ -77,6 +77,13 @@ metadata:
   namespace: {{ .Values.namespace }}
   labels:
     {{- include "interop-eks-cronjob-chart.labels" . | nindent 4 }}
+  annotations:
+    {{- with .Values.cronjob.metadata.annotations }}
+    {{- range $key, $val := . -}}
+    {{- $renderedVal := include "interop-eks-cronjob-chart.render-template" (dict "value" $val "context" $) }}
+    {{ $key }}: {{ $renderedVal | quote }}
+    {{- end }}
+    {{- end }}
 spec:
   schedule: {{ .Values.cronjob.schedule | quote }}
   timeZone: {{ .Values.cronjob.timeZone | quote }}
