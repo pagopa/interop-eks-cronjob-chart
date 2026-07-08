@@ -10,6 +10,10 @@ serviceAccount:
   roleArn:
 
 cronjob:
+  # -- (object) Additional metadata to apply to the CronJob resource
+  metadata:
+    # -- (object) Additional annotations to apply to CronJob metadata
+    annotations: {}
   # -- (object) Cronjob image configuration
   image:
     # -- (string) Image pull policy

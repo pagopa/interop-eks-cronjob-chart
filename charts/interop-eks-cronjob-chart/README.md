@@ -40,6 +40,8 @@ The following table lists the configurable parameters of the Interop-eks-cronjob
 | cronjob.image.repositoryName | string | `nil` | Alternative image name |
 | cronjob.image.repositoryPrefix | string | `nil` | Image repository |
 | cronjob.image.tag | string | `nil` | Image tag |
+| cronjob.metadata | object | `{"annotations":{}}` | Additional metadata to apply to the CronJob resource |
+| cronjob.metadata.annotations | object | `{}` | Additional annotations to apply to CronJob metadata |
 | cronjob.resources | object | `{"limits":{"cpu":null,"memory":null},"requests":{"cpu":null,"memory":null}}` | K8s container resources requests and limits |
 | cronjob.restartPolicy | string | `"OnFailure"` |  |
 | cronjob.schedule | string | `nil` | The [schedule](https://kubernetes.io/docs/concepts/workloads/controllers/cron-jobs/#schedule-syntax) field is required. The value of that field follows the [Cron](https://en.wikipedia.org/wiki/Cron) syntax. |

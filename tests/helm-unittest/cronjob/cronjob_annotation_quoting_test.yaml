@@ -1,0 +1,21 @@
+suite: cronjob annotation value quoting
+templates:
+  - templates/cronjob.yaml
+values:
+  - ../common/base.yaml
+
+tests:
+  - it: renders CronJob metadata annotation values as strings, even when they look like YAML bools or numbers
+    set:
+      cronjob.metadata.annotations:
+        example.com/bool-like: true
+        example.com/number-like: 42
+    asserts:
+      - equal:
+          path: metadata.annotations["example.com/bool-like"]
+          value: "true"
+      - equal:
+          path: metadata.annotations["example.com/number-like"]
+          value: "42"
+      - isKind:
+          of: CronJob
