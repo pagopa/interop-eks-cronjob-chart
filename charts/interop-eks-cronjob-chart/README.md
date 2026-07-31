@@ -28,10 +28,11 @@ The following table lists the configurable parameters of the Interop-eks-cronjob
 | cronjob.flywayInitContainer.envFromSecrets | object | `{}` | List of environment variables for a container, specifying a key from a Secret for each named variable (k8s equivalent of envFrom.secretRef) |
 | cronjob.flywayInitContainer.executeFlywayMigrate | bool | `true` | execute Flyway migrate command to apply migrations to the database |
 | cronjob.flywayInitContainer.executeFlywayRepair | bool | `false` | execute Flyway repair command to recompute applied migrations checksum metadata; useful for whitespace changes |
-| cronjob.flywayInitContainer.image.digest | string | `nil` | if set, overrides tag with the specified digest |
-| cronjob.flywayInitContainer.image.repositoryName | string | `nil` | must be set if create is true, e.g. "interop-flyway-migrations" |
-| cronjob.flywayInitContainer.image.repositoryPrefix | string | `nil` |  |
-| cronjob.flywayInitContainer.image.tag | string | `nil` | defaults to deployment image tag if not set |
+| cronjob.flywayInitContainer.image.digest | string | `nil` | If set, overrides tag with the specified digest (e.g. "sha256:abc123…"). |
+| cronjob.flywayInitContainer.image.imagePullPolicy | string | `nil` | Image pull policy for the init container; if unset, the Kubernetes default applies |
+| cronjob.flywayInitContainer.image.repositoryName | string | `"flyway/flyway"` | Image repository name. Defaults to "flyway/flyway" (official Flyway image). Override to use a custom migration image (e.g. "interop-flyway-migrations"). |
+| cronjob.flywayInitContainer.image.repositoryPrefix | string | `"docker.io"` | Image repository prefix. Defaults to "docker.io" (official Docker Hub namespace). Override to use a custom registry (e.g. a private ECR prefix). |
+| cronjob.flywayInitContainer.image.tag | string | `"8.2.3"` | Image tag. Defaults to "8.2.3" (official Flyway release). Override to pin a different version. |
 | cronjob.flywayInitContainer.migrationPaths | string | `nil` | List of comma separated paths to migration files or directories containing migration files (e.g. "/migrations/a_directory,v1_migration.sql,/migrations/b_directory") |
 | cronjob.flywayInitContainer.migrationsConfigmap | string | `nil` | Configmap with migrations |
 | cronjob.image | object | `{"digest":null,"imagePullPolicy":"Always","repositoryName":null,"repositoryPrefix":null,"tag":null}` | Cronjob image configuration |

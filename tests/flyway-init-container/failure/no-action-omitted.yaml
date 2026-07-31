@@ -1,12 +1,12 @@
-# create=true senza definire executeFlywayMigrate né executeFlywayRepair
-#            -> entrambi risultano falsy -> fail() esplicito
+# create=true without defining executeFlywayMigrate or executeFlywayRepair
+#            -> both resolve to falsy -> explicit fail()
 #
-# Errore atteso:
+# Expected error:
 #   "Invalid configuration: Both executeFlywayMigrate and executeFlywayRepair
 #    in the flywayInitContainer are false."
 #
 # helm template charts/interop-eks-cronjob-chart -f tests/flyway-init-container/base-values.yaml -f tests/flyway-init-container/failure/no-action-omitted.yaml
-# Atteso: exit code != 0
+# Expected: exit code != 0
 
 cronjob:
   flywayInitContainer:

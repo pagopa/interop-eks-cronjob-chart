@@ -1,8 +1,9 @@
-# create=true ma image.repositoryName non impostato → immagine malformata
+# create=true with image: null → image.repositoryName is cleared, overriding the default "flyway/flyway"
+# Helm nullifies sub-keys when a parent key is explicitly set to null.
+# The chart must fail with an explicit error because repositoryName is empty/nil.
 #
-# helm template charts/interop-eks-cronjob-chart -f tests/flyway-init-container/base-values.yaml -f tests/flyway-init-container/failure/flyway-missing-repository-name.yaml \
-#   | grep "image:" -> deve mostrare un'immagine con segmento vuoto o "<no value>"
-# Atteso ideale: exit code != 0
+# helm template charts/interop-eks-cronjob-chart -f tests/flyway-init-container/base-values.yaml -f tests/flyway-init-container/failure/flyway-missing-repository-name.yaml
+# Expected: exit code != 0, error "repositoryName must be set and non-empty"
 
 cronjob:
   flywayInitContainer:

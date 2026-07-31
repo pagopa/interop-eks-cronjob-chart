@@ -1,11 +1,11 @@
 # executeFlywayRepair=true only -> INTERNAL_FLYWAY_ACTION=repair
-# Verifica: env var INTERNAL_FLYWAY_ACTION deve avere valore "repair".
+# Expected: env var INTERNAL_FLYWAY_ACTION must have value "repair".
 #
 # helm template charts/interop-eks-cronjob-chart -f tests/flyway-init-container/base-values.yaml -f tests/flyway-init-container/success/ts-03-repair.yaml
 # helm lint    charts/interop-eks-cronjob-chart -f tests/flyway-init-container/base-values.yaml -f tests/flyway-init-container/success/ts-03-repair.yaml
 #
-# Verifica manuale output:
-#   | grep "INTERNAL_FLYWAY_ACTION" -A1 -> deve mostrare value: repair
+# Manual output check:
+#   | grep "INTERNAL_FLYWAY_ACTION" -A1 -> must show value: repair
 
 cronjob:
   flywayInitContainer:

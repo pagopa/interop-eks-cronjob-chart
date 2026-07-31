@@ -1,10 +1,10 @@
-# Flyway image.tag impostato esplicitamente → sovrascrive cronjob.image.tag
-# Verifica: l'immagine dell'initContainer deve contenere ":2.5.0" e NON ":1.0.0".
+# flywayInitContainer.image.tag explicitly set -> overrides the default tag ("8.2.3")
+# Expected: the initContainer image must contain ":2.5.0" and NOT ":8.2.3".
 #
 # helm template charts/interop-eks-cronjob-chart -f tests/flyway-init-container/base-values.yaml -f tests/flyway-init-container/success/flyway-image-tag.yaml
 #
-# Verifica manuale output (blocco initContainers):
-#   | grep "image:" -> deve contenere :2.5.0
+# Manual output check (initContainers block):
+#   | grep "image:" -> must contain :2.5.0
 
 cronjob:
   flywayInitContainer:

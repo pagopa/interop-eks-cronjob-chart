@@ -1,13 +1,13 @@
-# cronjob.image.tag=null e cronjob.image.digest=null -> fail() esplicito
+# cronjob.image.tag=null and cronjob.image.digest=null -> explicit fail()
 #
-# Nota: questo test NON usa base-values.yaml perché occorre sovrascrivere
-#       image.tag a null esplicitamente (il merge Helm non lo consente via secondo file).
+# Note: this test does NOT use base-values.yaml because image.tag must be
+#       explicitly overridden to null (Helm merge does not allow it via a second file).
 #
-# Errore atteso:
+# Expected error:
 #   "One of cronjob.image.tag and cronjob.image.digest must be defined."
 #
 # helm template charts/interop-eks-cronjob-chart -f tests/general/failure/no-main-image-ref.yaml
-# Atteso: exit code != 0
+# Expected: exit code != 0
 
 name: test-cronjob
 namespace: test-ns

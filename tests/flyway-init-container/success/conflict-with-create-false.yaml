@@ -1,15 +1,15 @@
-# migrationsConfigmap e migrationPaths entrambi impostati ma create=false
+# migrationsConfigmap and migrationPaths both set but create=false
 #
-# Comportamento atteso: exit code 0, nessun initContainer nel manifest.
+# Expected behavior: exit code 0, no initContainer in the manifest.
 #
 # helm template charts/interop-eks-cronjob-chart -f tests/flyway-init-container/base-values.yaml -f tests/flyway-init-container/success/conflict-with-create-false.yaml
-#   -> deve completare SENZA errori (exit code 0) nonostante la configurazione invalida
+#   -> must complete WITHOUT errors (exit code 0) despite the invalid configuration
 # helm template charts/interop-eks-cronjob-chart -f tests/flyway-init-container/base-values.yaml -f tests/flyway-init-container/success/conflict-with-create-false.yaml \
-#   | grep "initContainers"  -> deve restituire 0 righe
+#   | grep "initContainers"  -> must return 0 lines
 
 cronjob:
   flywayInitContainer:
-    create: false                                  # guardia falsa: il fail() NON scatta
-    migrationsConfigmap: my-migrations-configmap   # conflitto ignorato silenziosamente
-    migrationPaths: "/migrations/v1"               # conflitto ignorato silenziosamente
+    create: false                                  # false guard: fail() does NOT trigger
+    migrationsConfigmap: my-migrations-configmap   # conflict silently ignored
+    migrationPaths: "/migrations/v1"               # conflict silently ignored
     executeFlywayMigrate: true

@@ -1,11 +1,11 @@
-# flywayInitContainer.resources NON impostato -> fallback a cronjob.resources
-# Verifica: l'initContainer deve avere requests.cpu=100m e limits.memory=256Mi
-#           (valori ereditati da cronjob.resources definiti in base-values.yaml).
+# flywayInitContainer.resources NOT set -> falls back to cronjob.resources
+# Expected: the initContainer must have requests.cpu=100m and limits.memory=256Mi
+#           (values inherited from cronjob.resources defined in base-values.yaml).
 #
 # helm template charts/interop-eks-cronjob-chart -f tests/flyway-init-container/base-values.yaml -f tests/flyway-init-container/success/flyway-resources-fallback.yaml
 #
-# Verifica manuale output (blocco initContainers > resources):
-#   | grep -A6 "resources:" -> deve mostrare cpu: 100m e memory: 256Mi (primo blocco resources = initContainer)
+# Manual output check (initContainers > resources block):
+#   | grep -A6 "resources:" -> must show cpu: 100m and memory: 256Mi (first resources block = initContainer)
 
 cronjob:
   flywayInitContainer:
@@ -13,4 +13,4 @@ cronjob:
     image:
       repositoryName: interop-flyway-migrations
     executeFlywayMigrate: true
-    # resources intenzionalmente non impostato: deve ereditare cronjob.resources
+    # resources intentionally not set: must inherit cronjob.resources

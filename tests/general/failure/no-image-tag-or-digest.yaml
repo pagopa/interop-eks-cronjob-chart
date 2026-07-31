@@ -1,12 +1,12 @@
-# cronjob.image.tag e cronjob.image.digest entrambi assenti → il template deve fallire
-# Verifica: helm template deve restituire un errore con il messaggio:
+# cronjob.image.tag and cronjob.image.digest both absent → the template must fail
+# Expected: helm template must return an error with the message:
 #   "One of cronjob.image.tag and cronjob.image.digest must be defined."
 #
-# Nota: questo test NON usa base-values.yaml perché occorre sovrascrivere image.tag a null.
+# Note: this test does NOT use base-values.yaml because image.tag must be overridden to null.
 #
 # helm template charts/interop-eks-cronjob-chart -f tests/general/failure/no-image-tag-or-digest.yaml
 #
-# Verifica: il comando deve uscire con codice != 0 e stampare il messaggio di errore atteso.
+# Expected: the command must exit with code != 0 and print the expected error message.
 
 name: test-cronjob
 namespace: test-ns
@@ -20,8 +20,8 @@ cronjob:
     repositoryPrefix: my-registry.example.com
     repositoryName: my-app
     imagePullPolicy: Always
-    tag: ~        # null: nessun tag impostato
-    digest: ~     # null: nessun digest impostato
+    tag: ~        # null: no tag set
+    digest: ~     # null: no digest set
   resources:
     requests:
       cpu: "100m"

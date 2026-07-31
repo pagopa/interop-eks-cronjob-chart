@@ -7,6 +7,7 @@ cronjob:
   flywayInitContainer:
     create: true
     image:
+      repositoryPrefix: 000000000000.dkr.ecr.eu-central-1.amazonaws.com
       repositoryName: interop-flyway-migrations
       digest: sha256:deadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef00000001
     executeFlywayMigrate: true

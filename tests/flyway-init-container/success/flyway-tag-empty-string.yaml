@@ -1,13 +1,16 @@
-# flywayInitContainer.image.tag impostato come stringa vuota ""
+# flywayInitContainer.image.tag set to empty string ""
+# An empty string is falsy in Go templates: overrides the "8.2.3" default without
+# producing a tag. The resulting image will NOT have a ":tag" suffix.
+# No fallback to cronjob.image.tag anymore.
 #
 # helm template charts/interop-eks-cronjob-chart -f tests/flyway-init-container/base-values.yaml -f tests/flyway-init-container/success/flyway-tag-empty-string.yaml \
 #   | grep "name: migrate-db" -A2 | grep "image:"
-#   -> verifica che NON contenga solo ":" come suffisso
+#   -> verify it does NOT contain ":" as a tag suffix
 
 cronjob:
   flywayInitContainer:
     create: true
     image:
       repositoryName: interop-flyway-migrations
-      tag: ""          # stringa vuota: falsy in Go templates → fallback atteso su cronjob.image.tag
+      tag: ""          # empty string: falsy in Go templates → no tag suffix; no fallback
     executeFlywayMigrate: true

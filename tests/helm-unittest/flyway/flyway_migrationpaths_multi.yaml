@@ -7,7 +7,9 @@ cronjob:
   flywayInitContainer:
     create: true
     image:
+      repositoryPrefix: 000000000000.dkr.ecr.eu-central-1.amazonaws.com
       repositoryName: interop-flyway-migrations
+      tag: "2.0.0"
     executeFlywayMigrate: true
     executeFlywayRepair: false
     migrationPaths: /flyway_migrationpaths_multi/migrations/v1_migrations,/flyway_migrationpaths_multi/migrations/v2_migrations,/flyway_migrationpaths_multi/migrations/patches/fix_001.sql

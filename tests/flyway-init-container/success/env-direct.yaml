@@ -1,12 +1,12 @@
-# flywayInitContainer.env impostato -> variabili dirette key/value nell'env
-# Verifica: le variabili DB_HOST e DB_PORT devono comparire nell'env dell'initContainer
-#           con i rispettivi valori diretti (non valueFrom).
+# flywayInitContainer.env set -> direct key/value variables in the env block
+# Expected: DB_HOST and DB_PORT variables must appear in the initContainer env
+#           with direct values (not valueFrom).
 #
 # helm template charts/interop-eks-cronjob-chart -f tests/flyway-init-container/base-values.yaml -f tests/flyway-init-container/success/env-direct.yaml
 #
-# Verifica manuale output (blocco initContainers > env):
-#   | grep "DB_HOST" -A1 -> deve mostrare value: postgres.example.com
-#   | grep "DB_PORT" -A1 -> deve mostrare value: "5432"
+# Manual output check (initContainers > env block):
+#   | grep "DB_HOST" -A1 -> must show value: postgres.example.com
+#   | grep "DB_PORT" -A1 -> must show value: "5432"
 
 cronjob:
   flywayInitContainer:
