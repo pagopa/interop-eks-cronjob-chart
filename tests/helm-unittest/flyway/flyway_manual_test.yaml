@@ -83,7 +83,7 @@ tests:
       - notExists:
           path: spec.jobTemplate.spec.template.spec.volumes[0]
 
-  - it: inherits repository prefix and tag for partially customized flyway images
+  - it: uses explicitly configured prefix and tag for partially customized flyway images
     values:
       - flyway_custom_image_partial.yaml
     asserts:

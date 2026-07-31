@@ -1,4 +1,4 @@
-# migrationsConfigmap impostato come intero invece di stringa
+# migrationsConfigmap set as an integer instead of string
 #
 # helm template charts/interop-eks-cronjob-chart -f tests/flyway-init-container/base-values.yaml -f tests/flyway-init-container/failure/schema-migrations-configmap-wrong-type.yaml
 
@@ -8,4 +8,4 @@ cronjob:
     image:
       repositoryName: interop-flyway-migrations
     executeFlywayMigrate: true
-    migrationsConfigmap: 9999    # intero invece di stringa → tipo errato
+    migrationsConfigmap: 9999    # integer instead of string → wrong type

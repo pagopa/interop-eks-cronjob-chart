@@ -1,12 +1,12 @@
-# Campo "name" assente -> violazione JSON schema (required: [name, namespace])
+# "name" field missing -> JSON schema violation (required: [name, namespace])
 #
-# Errore atteso da helm lint / helm template:
+# Expected error from helm lint / helm template:
 #   [ERROR] values.yaml: (root): name is required
 #
 # helm template charts/interop-eks-cronjob-chart -f tests/general/failure/schema-missing-name.yaml
-# Atteso: exit code != 0
+# Expected: exit code != 0
 
-name: #intenzionalmente omesso
+name: # intentionally omitted
 namespace: test-ns
 
 serviceAccount:

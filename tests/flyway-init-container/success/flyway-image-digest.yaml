@@ -1,10 +1,10 @@
-# Flyway image.digest impostato → usato al posto del tag, nessun ":tag" nell'immagine flyway
-# Verifica: l'immagine dell'initContainer deve contenere "@sha256:abc123" e NON ":<tag>".
+# flywayInitContainer.image.digest set -> used instead of tag, no ":tag" in the flyway image
+# Expected: the initContainer image must contain "@sha256:abc123" and NOT ":<tag>".
 #
 # helm template charts/interop-eks-cronjob-chart -f tests/flyway-init-container/base-values.yaml -f tests/flyway-init-container/success/flyway-image-digest.yaml
 #
-# Verifica manuale output (blocco initContainers):
-#   | grep "image:" -> deve contenere @sha256:abc123def456 e NON :1.0.0
+# Manual output check (initContainers block):
+#   | grep "image:" -> must contain @sha256:abc123def456 and NOT :8.2.3
 
 cronjob:
   flywayInitContainer:

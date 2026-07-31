@@ -1,15 +1,15 @@
-# Flyway image.repositoryPrefix non impostato -> fallback a cronjob.image.repositoryPrefix
-# Verifica: l'immagine dell'initContainer deve iniziare con "my-registry.example.com/" (valore ereditato dal base-values.yaml).
+# flywayInitContainer.image.repositoryPrefix not set -> uses the default defined in values.yaml ("docker.io")
+# Does not inherit cronjob.image.repositoryPrefix anymore - the official Flyway image default is used.
 #
 # helm template charts/interop-eks-cronjob-chart -f tests/flyway-init-container/base-values.yaml -f tests/flyway-init-container/success/flyway-prefix-fallback.yaml
 #
-# Verifica manuale output (blocco initContainers):
-#   | grep "image:" -> deve contenere my-registry.example.com/
+# Manual output check (initContainers block):
+#   | grep "image:" -> must contain docker.io/ (default Docker Hub registry prefix)
 
 cronjob:
   flywayInitContainer:
     create: true
     image:
       repositoryName: interop-flyway-migrations
-      # repositoryPrefix intenzionalmente non impostato
+      # repositoryPrefix intentionally not set: uses the "docker.io" default from values.yaml
     executeFlywayMigrate: true

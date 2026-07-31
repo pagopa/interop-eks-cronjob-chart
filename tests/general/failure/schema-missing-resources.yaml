@@ -1,10 +1,10 @@
-# Campo "cronjob.resources" assente -> violazione JSON schema (cronjob required: [resources])
+# "cronjob.resources" field missing -> JSON schema violation (cronjob required: [resources])
 #
-# Errore atteso da helm lint / helm template:
+# Expected error from helm lint / helm template:
 #   [ERROR] values.yaml: cronjob: resources is required
 #
 # helm template charts/interop-eks-cronjob-chart -f tests/general/failure/schema-missing-resources.yaml
-# Atteso: exit code != 0
+# Expected: exit code != 0
 
 name: test-cronjob
 namespace: test-ns
@@ -17,6 +17,6 @@ cronjob:
   image:
     repositoryPrefix: my-registry.example.com
     tag: "1.0.0"
-  resources: #intenzionalmente omesso
+  resources: # intentionally omitted
   flywayInitContainer:
     create: false

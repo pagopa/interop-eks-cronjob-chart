@@ -1,8 +1,8 @@
-# envFromConfigmaps: valore senza separatore "." → mustRegexSplit produce un array
-#            con un solo elemento, causando un errore di index out of range sul secondo elemento.
+# envFromConfigmaps: value without "." separator → mustRegexSplit produces an array
+#            with a single element, causing an index out of range error on the second element.
 ##
 # helm template charts/interop-eks-cronjob-chart -f tests/flyway-init-container/base-values.yaml -f tests/flyway-init-container/failure/env-configmap-no-dot.yaml \
-#   | grep "key:" -> deve mostrare key vuota o assente
+#   | grep "key:" -> must show empty or missing key
 #
 
 cronjob:
@@ -12,4 +12,4 @@ cronjob:
       repositoryName: interop-flyway-migrations
     executeFlywayMigrate: true
     envFromConfigmaps:
-      DB_URL: "configmap-name-without-dot-separator"    # formato errato: manca il "."
+      DB_URL: "configmap-name-without-dot-separator"    # wrong format: missing "."
