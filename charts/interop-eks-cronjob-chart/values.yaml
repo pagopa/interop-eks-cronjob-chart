@@ -38,14 +38,16 @@ cronjob:
   flywayInitContainer:
     create: false
     image:
-      # -- (string) defaults to deployment repositoryPrefix if not set
-      repositoryPrefix:
-      # -- (string) must be set if create is true, e.g. "interop-flyway-migrations"
-      repositoryName:
-      # -- (string) defaults to deployment image tag if not set
-      tag:
-      # -- (string) if set, overrides tag with the specified digest
+      # -- (string) Image repository prefix. Defaults to "docker.io" (official Docker Hub namespace). Override to use a custom registry (e.g. a private ECR prefix).
+      repositoryPrefix: docker.io
+      # -- (string) Image repository name. Defaults to "flyway/flyway" (official Flyway image). Override to use a custom migration image (e.g. "interop-flyway-migrations").
+      repositoryName: flyway/flyway
+      # -- (string) Image tag. Defaults to "8.2.3" (official Flyway release). Override to pin a different version.
+      tag: "8.2.3"
+      # -- (string) If set, overrides tag with the specified digest (e.g. "sha256:abc123…").
       digest:
+      # -- (string) Image pull policy for the init container; if unset, the Kubernetes default applies
+      imagePullPolicy:
     # -- (bool) execute Flyway migrate command to apply migrations to the database
     executeFlywayMigrate: true
     # -- (bool) downloadRedshiftDriver: if true, the init container will download the Redshift JDBC driver from the official AWS S3 bucket and place it in the Flyway drivers directory before executing any Flyway command. This is required when using Flyway with Redshift, as the driver is not included in the default Flyway image.

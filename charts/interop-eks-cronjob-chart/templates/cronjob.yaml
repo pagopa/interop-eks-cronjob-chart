@@ -19,10 +19,8 @@
 
 {{- $flyway_repository_prefix := "" }}
 {{- if and .Values.cronjob.flywayInitContainer .Values.cronjob.flywayInitContainer.create}}
-{{- if and .Values.cronjob.flywayInitContainer .Values.cronjob.flywayInitContainer.image .Values.cronjob.flywayInitContainer.image.repositoryPrefix }}
+{{- if and .Values.cronjob.flywayInitContainer.image .Values.cronjob.flywayInitContainer.image.repositoryPrefix }}
 {{- $flyway_repository_prefix = .Values.cronjob.flywayInitContainer.image.repositoryPrefix }}
-{{- else if .Values.cronjob.image.repositoryPrefix }}
-{{- $flyway_repository_prefix = .Values.cronjob.image.repositoryPrefix }}
 {{- end }}
 {{- end }}
 
@@ -32,7 +30,7 @@
 {{- if and .Values.cronjob.flywayInitContainer.image .Values.cronjob.flywayInitContainer.image.repositoryName }}
 {{- $flyway_repository_name = .Values.cronjob.flywayInitContainer.image.repositoryName }}
 {{- else }}
-{{- fail "cronjob.flywayInitContainer.image.repositoryName must be defined when flywayInitContainer.create is true." }}
+{{- fail "cronjob.flywayInitContainer.image.repositoryName must be set and non-empty when flywayInitContainer.create is true (default is 'flyway'; check if image: was overridden to null)." }}
 {{- end }}
 {{- end }}
 
@@ -44,13 +42,9 @@
 {{- end }}
 
 {{- $flyway_image_tag := "" }}
-{{- if not .Values.cronjob.flywayInitContainer.image.digest }}
-{{- if .Values.cronjob.flywayInitContainer.image.tag }}
+{{- if not (and .Values.cronjob.flywayInitContainer.image .Values.cronjob.flywayInitContainer.image.digest) }}
+{{- if and .Values.cronjob.flywayInitContainer.image .Values.cronjob.flywayInitContainer.image.tag }}
 {{- $flyway_image_tag = (nospace (cat ":" .Values.cronjob.flywayInitContainer.image.tag)) }}
-{{- else }}
-{{- if .Values.cronjob.image.tag }}
-{{- $flyway_image_tag = (nospace (cat ":" .Values.cronjob.image.tag)) }}
-{{- end }}
 {{- end }}
 {{- end }}
 
@@ -116,6 +110,9 @@ spec:
           initContainers:
             - name: migrate-db
               image: "{{ $flyway_repository_prefix }}/{{ $flyway_repository_name }}{{ $flyway_image_tag }}{{ $flyway_image_digest }}"
+              {{- if .Values.cronjob.flywayInitContainer.image.imagePullPolicy }}
+              imagePullPolicy: {{ .Values.cronjob.flywayInitContainer.image.imagePullPolicy }}
+              {{- end }}
               command:
                 - /bin/sh
                 - -c
