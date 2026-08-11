@@ -15,46 +15,34 @@
 {{- end }}
 
 {{- /* If the flyway initContainer is required then compute the flyway action(s) to execute */ -}}
+{{- $flyway_enabled := and .Values.cronjob .Values.cronjob.flywayInitContainer .Values.cronjob.flywayInitContainer.create -}}
 {{- $flyway_action := "" -}}
-
 {{- $flyway_repository_prefix := "" }}
-{{- if and .Values.cronjob.flywayInitContainer .Values.cronjob.flywayInitContainer.create}}
-{{- if and .Values.cronjob.flywayInitContainer .Values.cronjob.flywayInitContainer.image .Values.cronjob.flywayInitContainer.image.repositoryPrefix }}
-{{- $flyway_repository_prefix = .Values.cronjob.flywayInitContainer.image.repositoryPrefix }}
-{{- else if .Values.cronjob.image.repositoryPrefix }}
-{{- $flyway_repository_prefix = .Values.cronjob.image.repositoryPrefix }}
-{{- end }}
-{{- end }}
-
-
 {{- $flyway_repository_name := "" }}
-{{- if and .Values.cronjob.flywayInitContainer .Values.cronjob.flywayInitContainer.create}}
-{{- if and .Values.cronjob.flywayInitContainer.image .Values.cronjob.flywayInitContainer.image.repositoryName }}
-{{- $flyway_repository_name = .Values.cronjob.flywayInitContainer.image.repositoryName }}
-{{- else }}
-{{- fail "cronjob.flywayInitContainer.image.repositoryName must be defined when flywayInitContainer.create is true." }}
-{{- end }}
-{{- end }}
-
 {{- $flyway_image_digest := "" }}
-{{- if and .Values.cronjob.flywayInitContainer .Values.cronjob.flywayInitContainer.create}}
-{{- if and .Values.cronjob.flywayInitContainer .Values.cronjob.flywayInitContainer.image .Values.cronjob.flywayInitContainer.image.digest }}
-{{- $flyway_image_digest = (nospace (cat "@" .Values.cronjob.flywayInitContainer.image.digest)) }}
-{{- end }}
-{{- end }}
-
 {{- $flyway_image_tag := "" }}
-{{- if not .Values.cronjob.flywayInitContainer.image.digest }}
-{{- if .Values.cronjob.flywayInitContainer.image.tag }}
+
+{{- if $flyway_enabled }}
+{{- if not .Values.cronjob.flywayInitContainer.image }}
+{{- fail "Invalid configuration: cronjob.flywayInitContainer.image must be defined when flywayInitContainer.create is true." }}
+{{- end }}
+{{- if not .Values.cronjob.flywayInitContainer.image.repositoryPrefix }}
+{{- fail "Invalid configuration: cronjob.flywayInitContainer.image.repositoryPrefix must be set and non-empty when flywayInitContainer.create is true." }}
+{{- end }}
+{{- if not .Values.cronjob.flywayInitContainer.image.repositoryName }}
+{{- fail "Invalid configuration: cronjob.flywayInitContainer.image.repositoryName must be set and non-empty when flywayInitContainer.create is true." }}
+{{- end }}
+{{- if and (not .Values.cronjob.flywayInitContainer.image.tag) (not .Values.cronjob.flywayInitContainer.image.digest) }}
+{{- fail "Invalid configuration: at least one between cronjob.flywayInitContainer.image.tag and cronjob.flywayInitContainer.image.digest must be set when flywayInitContainer.create is true." }}
+{{- end }}
+{{- $flyway_repository_prefix = .Values.cronjob.flywayInitContainer.image.repositoryPrefix }}
+{{- $flyway_repository_name = .Values.cronjob.flywayInitContainer.image.repositoryName }}
+{{- if .Values.cronjob.flywayInitContainer.image.digest }}
+{{- $flyway_image_digest = (nospace (cat "@" .Values.cronjob.flywayInitContainer.image.digest)) }}
+{{- else if .Values.cronjob.flywayInitContainer.image.tag }}
 {{- $flyway_image_tag = (nospace (cat ":" .Values.cronjob.flywayInitContainer.image.tag)) }}
-{{- else }}
-{{- if .Values.cronjob.image.tag }}
-{{- $flyway_image_tag = (nospace (cat ":" .Values.cronjob.image.tag)) }}
-{{- end }}
-{{- end }}
 {{- end }}
 
-{{- if and .Values.cronjob .Values.cronjob.flywayInitContainer .Values.cronjob.flywayInitContainer.create }}
 {{- if and .Values.cronjob.flywayInitContainer.migrationsConfigmap .Values.cronjob.flywayInitContainer.migrationPaths }}
 {{ fail "Invalid configuration - Both migrationsConfigmap and migrationPaths in flywayInitContainer cannot be defined at the same time." }}
 {{- end }}
@@ -77,6 +65,13 @@ metadata:
   namespace: {{ .Values.namespace }}
   labels:
     {{- include "interop-eks-cronjob-chart.labels" . | nindent 4 }}
+  annotations:
+    {{- with .Values.cronjob.metadata.annotations }}
+    {{- range $key, $val := . -}}
+    {{- $renderedVal := include "interop-eks-cronjob-chart.render-template" (dict "value" $val "context" $) }}
+    {{ $key }}: {{ $renderedVal | quote }}
+    {{- end }}
+    {{- end }}
 spec:
   schedule: {{ .Values.cronjob.schedule | quote }}
   timeZone: {{ .Values.cronjob.timeZone | quote }}
@@ -105,10 +100,13 @@ spec:
           automountServiceAccountToken: {{ .Values.cronjob.automountServiceAccountToken }}
           restartPolicy: {{ .Values.cronjob.restartPolicy }}
           serviceAccountName: {{ .Values.name | quote }}
-          {{- if and .Values.cronjob .Values.cronjob.flywayInitContainer .Values.cronjob.flywayInitContainer.create }}
+          {{- if $flyway_enabled}}
           initContainers:
             - name: migrate-db
               image: "{{ $flyway_repository_prefix }}/{{ $flyway_repository_name }}{{ $flyway_image_tag }}{{ $flyway_image_digest }}"
+              {{- if .Values.cronjob.flywayInitContainer.image.imagePullPolicy }}
+              imagePullPolicy: {{ .Values.cronjob.flywayInitContainer.image.imagePullPolicy }}
+              {{- end }}
               command:
                 - /bin/sh
                 - -c
@@ -213,7 +211,8 @@ spec:
                 {{- end }}
                 {{- if and .Values.cronjob .Values.cronjob.envFromConfigmaps }}
                 {{- range $key, $val := .Values.cronjob.envFromConfigmaps -}}
-                {{ $configmapAddress := mustRegexSplit "\\." $val 2 }}
+                {{- $renderedVal := include "interop-eks-cronjob-chart.render-template" (dict "value" $val "context" $) }}
+                {{- $configmapAddress := mustRegexSplit "\\." $renderedVal 2 }}
                 - name: {{ $key | quote }}
                   valueFrom:
                     configMapKeyRef:
@@ -223,7 +222,8 @@ spec:
                 {{- end }}
                 {{- if and .Values.cronjob .Values.cronjob.envFromSecrets }}
                 {{- range $key, $val := .Values.cronjob.envFromSecrets -}}
-                {{ $secretAddress := mustRegexSplit "\\." $val 2 }}
+                {{- $renderedVal := include "interop-eks-cronjob-chart.render-template" (dict "value" $val "context" $) }}
+                {{- $secretAddress := mustRegexSplit "\\." $renderedVal 2 }}
                 - name: {{ $key | quote }}
                   valueFrom:
                     secretKeyRef:
@@ -244,9 +244,9 @@ spec:
               volumeMounts:
                 {{- toYaml .Values.cronjob.volumeMounts | nindent 16 }}
               {{- end }}
-          {{- if and .Values.cronjob (or .Values.cronjob.volumes (and .Values.cronjob.flywayInitContainer .Values.cronjob.flywayInitContainer.create  .Values.cronjob.flywayInitContainer.migrationsConfigmap)) }}
+          {{- if and .Values.cronjob (or .Values.cronjob.volumes (and $flyway_enabled .Values.cronjob.flywayInitContainer.migrationsConfigmap)) }}
           volumes:
-            {{- if and .Values.cronjob .Values.cronjob.flywayInitContainer .Values.cronjob.flywayInitContainer.create .Values.cronjob.flywayInitContainer.migrationsConfigmap }}
+            {{- if and $flyway_enabled .Values.cronjob.flywayInitContainer.migrationsConfigmap }}
             - name: migrations-files
               projected:
                 sources:

@@ -1,0 +1,25 @@
+name: test-cronjob
+namespace: test-namespace
+
+serviceAccount:
+  roleArn:
+
+cronjob:
+  schedule: "0 * * * *"
+  image:
+    repositoryPrefix: docker.io/library
+    repositoryName: busybox
+    imagePullPolicy: IfNotPresent
+    tag: "1.36.1"
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 200m
+      memory: 256Mi
+  flywayInitContainer:
+    create: false
+
+externalSecrets:
+  create: false

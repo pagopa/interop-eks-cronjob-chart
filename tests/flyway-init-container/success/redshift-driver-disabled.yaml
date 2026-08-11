@@ -1,10 +1,10 @@
 # downloadRedshiftDriver=false (default) -> INTERNAL_DOWNLOAD_REDSHIFT_DRIVER="false"
-# Verifica: env var INTERNAL_DOWNLOAD_REDSHIFT_DRIVER deve avere valore "false".
+# Expected: env var INTERNAL_DOWNLOAD_REDSHIFT_DRIVER must have value "false".
 #
 # helm template charts/interop-eks-cronjob-chart -f tests/flyway-init-container/base-values.yaml -f tests/flyway-init-container/success/ts-11-redshift-driver-disabled.yaml
 #
-# Verifica manuale output:
-#   | grep "INTERNAL_DOWNLOAD_REDSHIFT_DRIVER" -A1 -> deve mostrare value: "false"
+# Manual output check:
+#   | grep "INTERNAL_DOWNLOAD_REDSHIFT_DRIVER" -A1 -> must show value: "false"
 
 cronjob:
   flywayInitContainer:

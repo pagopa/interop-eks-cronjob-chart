@@ -1,0 +1,4 @@
+configmap:
+  EXTERNAL: some_value
+  POSTGRES_DB_CM: postgres_db
+  POSTGRES_SCHEMA: "{{ .Values.namespace }}_myschema"

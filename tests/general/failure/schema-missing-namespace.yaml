@@ -1,13 +1,13 @@
-# Campo "namespace" assente -> violazione JSON schema (required: [name, namespace])
+# "namespace" field missing -> JSON schema violation (required: [name, namespace])
 #
-# Errore atteso da helm lint / helm template:
+# Expected error from helm lint / helm template:
 #   [ERROR] values.yaml: (root): namespace is required
 #
 # helm template charts/interop-eks-cronjob-chart -f tests/general/failure/schema-missing-namespace.yaml
-# Atteso: exit code != 0
+# Expected: exit code != 0
 
 name: test-cronjob
-namespace: #intenzionalmente omesso
+namespace: # intentionally omitted
 
 serviceAccount:
   roleArn: "arn:aws:iam::123456789012:role/test-role"

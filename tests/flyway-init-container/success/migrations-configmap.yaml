@@ -1,16 +1,16 @@
-# migrationsConfigmap impostato -> volumeMount a /flyway/sql + volume projected
-# Verifica:
-#   - initContainer deve avere volumeMounts con mountPath: /flyway/sql
-#   - spec.template.spec.volumes deve contenere un volume "migrations-files" di tipo projected
-#     con il configMap "my-migrations-configmap"
-#   - NON deve essere presente INTERNAL_FLYWAY_MIGRATIONS_PATHS nell'env
+# migrationsConfigmap set -> volumeMount at /flyway/sql + projected volume
+# Expected:
+#   - initContainer must have volumeMounts with mountPath: /flyway/sql
+#   - spec.template.spec.volumes must contain a "migrations-files" projected volume
+#     with the configMap "my-migrations-configmap"
+#   - INTERNAL_FLYWAY_MIGRATIONS_PATHS must NOT be present in the env
 #
 # helm template charts/interop-eks-cronjob-chart -f tests/flyway-init-container/base-values.yaml -f tests/flyway-init-container/success/ts-13-migrations-configmap.yaml
 #
-# Verifica manuale output:
-#   | grep -A3 "volumeMounts"  -> deve mostrare mountPath: /flyway/sql
-#   | grep -A5 "migrations-files" -> deve mostrare projected + configMap: my-migrations-configmap
-#   | grep "INTERNAL_FLYWAY_MIGRATIONS_PATHS" -> NON deve apparire
+# Manual output check:
+#   | grep -A3 "volumeMounts"  -> must show mountPath: /flyway/sql
+#   | grep -A5 "migrations-files" -> must show projected + configMap: my-migrations-configmap
+#   | grep "INTERNAL_FLYWAY_MIGRATIONS_PATHS" -> must NOT appear
 
 cronjob:
   flywayInitContainer:

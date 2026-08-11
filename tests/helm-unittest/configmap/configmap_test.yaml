@@ -1,0 +1,24 @@
+suite: configmap
+templates:
+  - templates/configmap.yaml
+values:
+  - ../common/base.yaml
+
+tests:
+  - it: renders ConfigMap with templated values resolved
+    values:
+      - configmap.yaml
+    asserts:
+      - hasDocuments:
+          count: 1
+      - isKind:
+          of: ConfigMap
+      - equal:
+          path: data.EXTERNAL
+          value: some_value
+      - equal:
+          path: data.POSTGRES_DB_CM
+          value: postgres_db
+      - equal:
+          path: data.POSTGRES_SCHEMA
+          value: test-namespace_myschema

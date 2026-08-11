@@ -1,0 +1,26 @@
+suite: cronjob image
+templates:
+  - templates/cronjob.yaml
+values:
+  - ../common/base.yaml
+
+tests:
+  - it: renders the main image using repository name and tag
+    asserts:
+      - equal:
+          path: spec.jobTemplate.spec.template.spec.containers[0].image
+          value: docker.io/library/busybox:1.36.1
+      - notExists:
+          path: spec.jobTemplate.metadata.annotations.digest
+
+  - it: renders the main image using digest and adds the job annotation
+    set:
+      cronjob.image.tag: ""
+      cronjob.image.digest: sha256:1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef
+    asserts:
+      - equal:
+          path: spec.jobTemplate.spec.template.spec.containers[0].image
+          value: docker.io/library/busybox@sha256:1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef
+      - equal:
+          path: spec.jobTemplate.metadata.annotations.digest
+          value: sha256:1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef

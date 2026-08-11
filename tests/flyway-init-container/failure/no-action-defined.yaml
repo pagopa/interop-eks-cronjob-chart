@@ -1,11 +1,11 @@
-# executeFlywayMigrate=false e executeFlywayRepair=false -> il template deve fallire
-# Verifica: helm template deve restituire un errore con il messaggio:
+# executeFlywayMigrate=false and executeFlywayRepair=false -> the template must fail
+# Expected: helm template must return an error with the message:
 #   "Invalid configuration: Both executeFlywayMigrate and executeFlywayRepair
 #    in the flywayInitContainer are false."
 #
 # helm template charts/interop-eks-cronjob-chart -f tests/flyway-init-container/base-values.yaml -f tests/flyway-init-container/failure/tf-02-no-action-defined.yaml
 #
-# Verifica: il comando deve uscire con codice != 0 e stampare il messaggio di errore atteso.
+# Expected: the command must exit with code != 0 and print the expected error message.
 
 cronjob:
   flywayInitContainer:

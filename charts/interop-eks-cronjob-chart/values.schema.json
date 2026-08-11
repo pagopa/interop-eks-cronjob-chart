@@ -62,21 +62,21 @@
               "description": "Flyway init container image configuration",
               "properties": {
                 "repositoryPrefix": {
-                  "description": "Image repository prefix; defaults to cronjob.image.repositoryPrefix if not set",
+                  "description": "Image repository prefix; defaults to 'docker.io' (official Docker Hub namespace). Override to use a custom registry.",
                   "type": [
                     "string",
                     "null"
                   ]
                 },
                 "repositoryName": {
-                  "description": "Image repository name; required when create is true",
+                  "description": "Image repository name; defaults to 'flyway/flyway' (official Flyway image). Must be non-empty when create is true.",
                   "type": [
                     "string",
                     "null"
                   ]
                 },
                 "tag": {
-                  "description": "Image tag; defaults to cronjob.image.tag if not set",
+                  "description": "Image tag; defaults to '8.2.3' (official Flyway release). Override to pin a different version.",
                   "type": [
                     "string",
                     "null"
@@ -84,6 +84,13 @@
                 },
                 "digest": {
                   "description": "Image digest; if set, overrides tag",
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "imagePullPolicy": {
+                  "description": "Image pull policy for the Flyway init container; if unset, the Kubernetes default applies (IfNotPresent)",
                   "type": [
                     "string",
                     "null"
@@ -286,7 +293,7 @@
                     "type": "string"
                   }
                 },
-                "required": ["key", "property"],
+                "required": ["key"],
                 "additionalProperties": false
               }
             },
