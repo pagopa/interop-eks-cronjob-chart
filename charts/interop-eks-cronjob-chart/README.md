@@ -11,6 +11,14 @@ The following table lists the configurable parameters of the Interop-eks-cronjob
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
+| argocd.appMonitoring.enable | bool | `false` | Enable the management of monitoring resources using a Job with ArgoCD PostSync hook |
+| argocd.appMonitoring.jobNamespace | string | `nil` | Namespace in which the Job with ArgoCD PostSync hook runs |
+| argocd.appMonitoring.projectRepositoryRef | string | `"main"` | GitHub branch or tag to checkout |
+| argocd.appMonitoring.projectRepositoryURL | string | `nil` | URL of the GitHub repository containing the 'terraform/k8s-monitoring-argocd-application' Terraform state |
+| argocd.appMonitoring.serviceAccountName | string | `nil` | Name of the ServiceAccount with the IRSA annotation granting the Job the permission to manage AWS monitoring resources |
+| argocd.appMonitoring.tfEnv | string | `nil` | Terraform environment to use for managing monitoring resources |
+| argocd.appMonitoring.tfStateBucketKeyPrefix | string | `nil` | Bucket key prefix storing the Terraform state file |
+| argocd.appMonitoring.workloadKind | string | `"Cronjob"` | Kind of workload to monitor |
 | cronjob.activeDeadlineSeconds | int | 3600 | The activeDeadlineSeconds applies to the duration of the job, no matter how many Pods are created. Once a Job reaches activeDeadlineSeconds, all of its running Pods are terminated. |
 | cronjob.automountServiceAccountToken | bool | true | [automountServiceAccountToken](https://kubernetes.io/docs/tasks/configure-pod-container/configure-service-account/#use-the-default-service-account-to-access-the-api-server) |
 | cronjob.backoffLimit | int | `6` | [backoffLimit](https://kubernetes.io/docs/concepts/workloads/controllers/job/#handling-pod-and-container-failures) the number of retries before marking a Job as failed. |
