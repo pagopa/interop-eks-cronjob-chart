@@ -101,6 +101,24 @@ cronjob:
   # -- (object) List of pod fields used as values for environment variablesenvironment variables for a container, specifying a key from a Secret for each named variable (k8s equivalent of env.valueFrom.fieldRef.fieldPath)
   envFromFieldRef:
 
+argocd:
+  appMonitoring:
+    # -- (bool) Enable the management of monitoring resources using a Job with ArgoCD PostSync hook
+    enable: false
+    # -- (string) URL of the GitHub repository containing the 'terraform/k8s-monitoring-argocd-application' Terraform state
+    projectRepositoryURL:
+    # -- (string) GitHub branch or tag to checkout
+    projectRepositoryRef: main
+    # -- (string) Namespace in which the Job with ArgoCD PostSync hook runs
+    jobNamespace:
+    # -- (string) Name of the ServiceAccount with the IRSA annotation granting the Job the permission to manage AWS monitoring resources
+    serviceAccountName:
+    # -- (string) Kind of workload to monitor
+    workloadKind: Cronjob
+    # -- (string) Terraform environment to use for managing monitoring resources
+    tfEnv:
+    # -- (string) Bucket key prefix storing the Terraform state file
+    tfStateBucketKeyPrefix:
 
 externalSecrets:
   app:
