@@ -23,6 +23,8 @@ The key/value pair must be defined as follows:
 * Key: mapped to both the name of the environment variable used by the CronJob and the key defined in the ConfigMap; therefore the two keys coincide;
 * Value: the actual value associated with the key defined above
 
+Note: names used as Kubernetes environment variables are validated with the pattern `^[A-Za-z_][A-Za-z0-9_]*$`. For this reason, names such as `KEY-1`, `STA-GE`, or `MY-VAR` are rejected, while valid examples are `KEY_1`, `STAGE`, or `MY_VAR`.
+
 By declaring the "configmap" section in a CronJob's _values.yaml_ file, the following will happen automatically:
 * a ConfigMap with the same "name" as the CronJob will be created;
 * the "data" field of that ConfigMap will be populated with all the key/value pairs defined in "configmap";
@@ -354,7 +356,7 @@ externalSecrets:
       name: my-secret-store
 ```
 
-`secretStoreRef.name` is required when `create` is enabled.
+`secretStoreRef.name` is required and must be non-empty when `create` is enabled.
 
 ### 4.2 Refresh and Target Secret Policies
 
@@ -399,9 +401,13 @@ Each item requires:
 
 - `secretKey`
 - `remoteRef.key`
-- `remoteRef.property`
 
-Optional remote fields: `version`, `conversionStrategy`, `decodingStrategy`.
+Optional remote fields:
+
+- `remoteRef.property`
+- `remoteRef.version`
+- `remoteRef.conversionStrategy`
+- `remoteRef.decodingStrategy`
 
 ```yaml
 externalSecrets:
@@ -444,7 +450,7 @@ This allows environment-aware naming conventions directly in values files.
 ### 4.5 Labels, Annotations, and Contract Marker
 
 - `labels` and `annotations` are applied to the `ExternalSecret` metadata.
-- When `data` is configured, the chart adds a hash marker annotation (`externalsecret/secret-applied-hash`) on both the `ExternalSecret` target template and the contract `Secret`.
+- When `data` is configured, the chart adds `externalsecret/secret-applied-hash` to the `ExternalSecret` target template and `externalsecret/secret-data-hash` to the contract `Secret`.
 
 The hash is computed from the JSON-serialized content of `data`. It changes whenever the secret mapping changes.
 

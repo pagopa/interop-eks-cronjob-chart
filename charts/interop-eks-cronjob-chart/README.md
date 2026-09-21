@@ -43,11 +43,11 @@ The following table lists the configurable parameters of the Interop-eks-cronjob
 | cronjob.flywayInitContainer.image.tag | string | `"8.2.3"` | Image tag. Defaults to "8.2.3" (official Flyway release). Override to pin a different version. |
 | cronjob.flywayInitContainer.migrationPaths | string | `nil` | List of comma separated paths to migration files or directories containing migration files (e.g. "/migrations/a_directory,v1_migration.sql,/migrations/b_directory") |
 | cronjob.flywayInitContainer.migrationsConfigmap | string | `nil` | Configmap with migrations |
-| cronjob.image | object | `{"digest":null,"imagePullPolicy":"Always","repositoryName":null,"repositoryPrefix":null,"tag":null}` | Cronjob image configuration |
+| cronjob.image | object | `{"digest":null,"imagePullPolicy":"Always","repositoryName":null,"repositoryPrefix":"","tag":null}` | Cronjob image configuration |
 | cronjob.image.digest | string | `nil` | Image digest |
 | cronjob.image.imagePullPolicy | string | `"Always"` | Image pull policy |
 | cronjob.image.repositoryName | string | `nil` | Alternative image name |
-| cronjob.image.repositoryPrefix | string | `nil` | Image repository |
+| cronjob.image.repositoryPrefix | string | `""` | Image repository |
 | cronjob.image.tag | string | `nil` | Image tag |
 | cronjob.metadata | object | `{"annotations":{}}` | Additional metadata to apply to the CronJob resource |
 | cronjob.metadata.annotations | object | `{}` | Additional annotations to apply to CronJob metadata |
@@ -57,8 +57,10 @@ The following table lists the configurable parameters of the Interop-eks-cronjob
 | cronjob.successfulJobsHistoryLimit | int | 0 | [successfulJobsHistoryLimit](https://kubernetes.io/docs/concepts/workloads/controllers/cron-jobs/#jobs-history-limits) field specifies the number of successful finished jobs to keep. Setting this field to 0 will not keep any successful jobs |
 | cronjob.suspend | boolean | `false` | [suspend](https://kubernetes.io/docs/concepts/workloads/controllers/cron-jobs/#schedule-suspension) field allows to suspend execution of Jobs for a CronJob.  @default -- false. |
 | cronjob.timeZone | string | `nil` | [Time zone](https://kubernetes.io/docs/concepts/workloads/controllers/cron-jobs/#time-zones) to use when calculating schedule |
+| externalSecrets.app.annotations | object | `{}` | Additional annotations applied to the ExternalSecret resource |
 | externalSecrets.app.create | bool | `false` | Enable ExternalSecret creation |
 | externalSecrets.app.data | list | `[]` | List of individual secret keys to sync from external secret manager. When externalSecrets.app.create is true, each secretKey is automatically injected as an env var in the CronJob, referencing externalSecrets.app.targetSecret.name (defaults to the service name). This is the ExternalSecret equivalent of the top-level "configmap" field. |
+| externalSecrets.app.labels | object | `{}` | Additional labels applied to the ExternalSecret resource |
 | externalSecrets.app.refreshInterval | string | `"0"` | Refresh interval for the secret (e.g., "1h", "30m") |
 | externalSecrets.app.refreshPolicy | string | `"OnChange"` | Refresh policy for the secret, allowed values: [ "OnChange", "Interval" ] |
 | externalSecrets.app.secretStoreRef | object | `{"kind":"SecretStore","name":""}` | Reference to SecretStore or ClusterSecretStore |
@@ -66,8 +68,10 @@ The following table lists the configurable parameters of the Interop-eks-cronjob
 | externalSecrets.app.targetSecret.creationPolicy | string | `"Merge"` | Creation policy: Owner, Orphan, Merge, None |
 | externalSecrets.app.targetSecret.deletionPolicy | string | `"Retain"` | Deletion policy: Retain, Delete |
 | externalSecrets.app.targetSecret.name | string | `""` | Name of the target secret (defaults to cronjob name) |
+| externalSecrets.flywayInitContainer.annotations | object | `{}` | Additional annotations applied to the ExternalSecret resource |
 | externalSecrets.flywayInitContainer.create | bool | `false` | Enable ExternalSecret creation |
 | externalSecrets.flywayInitContainer.data | list | `[]` | List of individual secret keys to sync from external secret manager. When externalSecrets.flywayInitContainer.create is true, each secretKey is automatically injected as an env var in the CronJob, referencing externalSecrets.flywayInitContainer.targetSecret.name (defaults to the service name). This is the ExternalSecret equivalent of the top-level "configmap" field. |
+| externalSecrets.flywayInitContainer.labels | object | `{}` | Additional labels applied to the ExternalSecret resource |
 | externalSecrets.flywayInitContainer.refreshInterval | string | `"0"` | Refresh interval for the secret (e.g., "1h", "30m") |
 | externalSecrets.flywayInitContainer.refreshPolicy | string | `"OnChange"` | Refresh policy for the secret, allowed values: [ "OnChange", "Interval" ] |
 | externalSecrets.flywayInitContainer.secretStoreRef | object | `{"kind":"SecretStore","name":""}` | Reference to SecretStore or ClusterSecretStore |
@@ -89,6 +93,8 @@ To reference a key from the ConfigMap, a key/value pair must be added to the "co
 The key/value pair must be defined as follows:
 * Key: mapped to both the name of the environment variable used by the CronJob and the key defined in the ConfigMap; therefore the two keys coincide;
 * Value: the actual value associated with the key defined above
+
+Note: names used as Kubernetes environment variables are validated with the pattern `^[A-Za-z_][A-Za-z0-9_]*$`. For this reason, names such as `KEY-1`, `STA-GE`, or `MY-VAR` are rejected, while valid examples are `KEY_1`, `STAGE`, or `MY_VAR`.
 
 By declaring the "configmap" section in a CronJob's _values.yaml_ file, the following will happen automatically:
 * a ConfigMap with the same "name" as the CronJob will be created;
@@ -418,7 +424,7 @@ externalSecrets:
       name: my-secret-store
 ```
 
-`secretStoreRef.name` is required when `create` is enabled.
+`secretStoreRef.name` is required and must be non-empty when `create` is enabled.
 
 ### 4.2 Refresh and Target Secret Policies
 
@@ -463,9 +469,13 @@ Each item requires:
 
 - `secretKey`
 - `remoteRef.key`
-- `remoteRef.property`
 
-Optional remote fields: `version`, `conversionStrategy`, `decodingStrategy`.
+Optional remote fields:
+
+- `remoteRef.property`
+- `remoteRef.version`
+- `remoteRef.conversionStrategy`
+- `remoteRef.decodingStrategy`
 
 ```yaml
 externalSecrets:
@@ -508,7 +518,7 @@ This allows environment-aware naming conventions directly in values files.
 ### 4.5 Labels, Annotations, and Contract Marker
 
 - `labels` and `annotations` are applied to the `ExternalSecret` metadata.
-- When `data` is configured, the chart adds a hash marker annotation (`externalsecret/secret-applied-hash`) on both the `ExternalSecret` target template and the contract `Secret`.
+- When `data` is configured, the chart adds `externalsecret/secret-applied-hash` to the `ExternalSecret` target template and `externalsecret/secret-data-hash` to the contract `Secret`.
 
 The hash is computed from the JSON-serialized content of `data`. It changes whenever the secret mapping changes.
 
