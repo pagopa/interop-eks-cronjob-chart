@@ -53,7 +53,7 @@ app.kubernetes.io/managed-by: {{ .Release.Service }}
 Selector labels
 */}}
 {{- define "interop-eks-cronjob-chart.selectorLabels" -}}
-app: {{ .Values.name | quote }}
+app: {{ .Values.name }}
 {{- end }}
 
 {{/*
@@ -109,7 +109,7 @@ Usage:
 {{- define "interop-eks-cronjob-chart.render-template" -}}
 {{- $value := typeIs "string" .value | ternary .value (.value | toYaml) }}
 
-{{- if contains "{{" (toJson $value) }}
+{{- if and (typeIs "string" $value) (contains "{{" (toJson $value)) }}
   {{- $givenScope := .scope }}
   {{- $givenContext := .context }}
 
@@ -127,6 +127,40 @@ If the contract changes, the hash will change, and ExternalSecrets can trigger a
 Expects dict with 'data' key.
 */}}
 {{- define "externalsecrets.contractMarker" -}}
-{{- $data := .data | default list -}}
-{{- toJson $data | sha256sum -}}
+{{- $data := .data }}
+{{- if $data }}
+{{- toJson $data | sha256sum }}
+{{- end -}}
+{{- end -}}
+
+
+{{/* Validate a single environment variable name. */}}
+{{- define "interop-eks-cronjob-chart.validateEnvVarName" -}}
+{{- $scope := .scope | default "values" -}}
+{{- $path := .path | default "key" -}}
+{{- $name := .name | default "" -}}
+{{- if not (regexMatch "^[A-Za-z_][A-Za-z0-9_]*$" $name) -}}
+{{- fail (printf "Invalid configuration: %s.%s='%s' is not a valid environment variable name. Allowed pattern: ^[A-Za-z_][A-Za-z0-9_]*$" $scope $path $name) -}}
+{{- end -}}
+{{- end -}}
+
+{{/* Validate all keys of a map used as env var names. */}}
+{{- define "interop-eks-cronjob-chart.validateEnvVarNamesFromMapKeys" -}}
+{{- $scope := .scope | default "values" -}}
+{{- $path := .path | default "map" -}}
+{{- $entries := .entries | default dict -}}
+{{- range $key, $_ := $entries }}
+{{- include "interop-eks-cronjob-chart.validateEnvVarName" (dict "scope" $scope "path" (printf "%s[%s]" $path $key) "name" $key) -}}
+{{- end -}}
+{{- end -}}
+
+{{/* Validate ExternalSecret secretKey values used by envFrom. */}}
+{{- define "interop-eks-cronjob-chart.validateEnvVarNamesFromExternalSecretData" -}}
+{{- $scope := .scope | default "externalSecrets" -}}
+{{- $path := .path | default "data" -}}
+{{- $entries := .entries | default (list) -}}
+{{- range $idx, $entry := $entries }}
+{{- $secretKey := get $entry "secretKey" | default "" -}}
+{{- include "interop-eks-cronjob-chart.validateEnvVarName" (dict "scope" $scope "path" (printf "%s[%d].secretKey" $path $idx) "name" $secretKey) -}}
+{{- end -}}
 {{- end -}}
