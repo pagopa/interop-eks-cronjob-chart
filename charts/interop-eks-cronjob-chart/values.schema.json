@@ -53,6 +53,54 @@
         },
         "flywayInitContainer": {
           "description": "Optional Flyway init container configuration",
+          "allOf": [
+            {
+              "if": {
+                "properties": {
+                  "create": { "const": true }
+                }
+              },
+              "then": {
+                "required": ["image"],
+                "properties": {
+                  "image": {
+                    "type": "object",
+                    "required": ["repositoryPrefix", "repositoryName"],
+                    "properties": {
+                      "repositoryPrefix": {
+                        "type": "string",
+                        "minLength": 1
+                      },
+                      "repositoryName": {
+                        "type": "string",
+                        "minLength": 1
+                      }
+                    },
+                    "anyOf": [
+                      {
+                        "required": ["tag"],
+                        "properties": {
+                          "tag": {
+                            "type": "string",
+                            "minLength": 1
+                          }
+                        }
+                      },
+                      {
+                        "required": ["digest"],
+                        "properties": {
+                          "digest": {
+                            "type": "string",
+                            "minLength": 1
+                          }
+                        }
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          ],
           "properties": {
             "create": {
               "description": "Enable the Flyway init container",
@@ -219,7 +267,7 @@
             "pattern": "^[A-Za-z_][A-Za-z0-9_]*$"
           },
           "default": {}
-        },
+        }
       },
       "required": [
         "resources",
@@ -449,7 +497,29 @@
               },
               "default": []
             }
-          }
+          },
+          "allOf": [
+            {
+              "if": {
+                "properties": {
+                  "create": { "const": true }
+                }
+              },
+              "then": {
+                "properties": {
+                  "secretStoreRef": {
+                    "required": ["name"],
+                    "properties": {
+                      "name": {
+                        "type": "string",
+                        "minLength": 1
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          ]
         },
         "flywayInitContainer": {
           "description": "External Secrets configuration for the Flyway init container",
@@ -554,7 +624,29 @@
               },
               "default": []
             }
-          }
+          },
+          "allOf": [
+            {
+              "if": {
+                "properties": {
+                  "create": { "const": true }
+                }
+              },
+              "then": {
+                "properties": {
+                  "secretStoreRef": {
+                    "required": ["name"],
+                    "properties": {
+                      "name": {
+                        "type": "string",
+                        "minLength": 1
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          ]
         }
       },
       "additionalProperties": false
