@@ -23,10 +23,10 @@ The following table lists the configurable parameters of the Interop-eks-cronjob
 | cronjob.automountServiceAccountToken | bool | true | [automountServiceAccountToken](https://kubernetes.io/docs/tasks/configure-pod-container/configure-service-account/#use-the-default-service-account-to-access-the-api-server) |
 | cronjob.backoffLimit | int | `6` | [backoffLimit](https://kubernetes.io/docs/concepts/workloads/controllers/job/#handling-pod-and-container-failures) the number of retries before marking a Job as failed. |
 | cronjob.concurrencyPolicy | string | Allow | [concurrencyPolicy](https://kubernetes.io/docs/concepts/workloads/controllers/cron-jobs/#concurrency-policy) field specifies how to treat concurrent executions of a Job that is created by this CronJob. |
-| cronjob.env | object | `nil` | List of environment variables for a container, specifying a value directly for each named variable |
-| cronjob.envFromConfigmaps | object | `nil` | List of environment variables for a container, specifying a key from a Configmap for each named variable (k8s equivalent of envFrom.configMapRef) |
-| cronjob.envFromFieldRef | object | `nil` | List of pod fields used as values for environment variablesenvironment variables for a container, specifying a key from a Secret for each named variable (k8s equivalent of env.valueFrom.fieldRef.fieldPath) |
-| cronjob.envFromSecrets | object | `nil` | List of environment variables for a container, specifying a key from a Secret for each named variable (k8s equivalent of envFrom.secretRef) |
+| cronjob.env | object | `{}` | List of environment variables for a container, specifying a value directly for each named variable |
+| cronjob.envFromConfigmaps | object | `{}` | List of environment variables for a container, specifying a key from a Configmap for each named variable (k8s equivalent of envFrom.configMapRef) |
+| cronjob.envFromFieldRef | object | `{}` | List of pod fields used as values for environment variablesenvironment variables for a container, specifying a key from a Secret for each named variable (k8s equivalent of env.valueFrom.fieldRef.fieldPath) |
+| cronjob.envFromSecrets | object | `{}` | List of environment variables for a container, specifying a key from a Secret for each named variable (k8s equivalent of envFrom.secretRef) |
 | cronjob.failedJobsHistoryLimit | int | 1 | [failedJobsHistoryLimit](https://kubernetes.io/docs/concepts/workloads/controllers/cron-jobs/#jobs-history-limits) field specifies the number of failed finished jobs to keep. Setting this field to 0 will not keep any failed jobs. |
 | cronjob.flywayInitContainer.create | bool | `false` |  |
 | cronjob.flywayInitContainer.downloadRedshiftDriver | bool | `false` | downloadRedshiftDriver: if true, the init container will download the Redshift JDBC driver from the official AWS S3 bucket and place it in the Flyway drivers directory before executing any Flyway command. This is required when using Flyway with Redshift, as the driver is not included in the default Flyway image. |
@@ -43,11 +43,11 @@ The following table lists the configurable parameters of the Interop-eks-cronjob
 | cronjob.flywayInitContainer.image.tag | string | `"8.2.3"` | Image tag. Defaults to "8.2.3" (official Flyway release). Override to pin a different version. |
 | cronjob.flywayInitContainer.migrationPaths | string | `nil` | List of comma separated paths to migration files or directories containing migration files (e.g. "/migrations/a_directory,v1_migration.sql,/migrations/b_directory") |
 | cronjob.flywayInitContainer.migrationsConfigmap | string | `nil` | Configmap with migrations |
-| cronjob.image | object | `{"digest":null,"imagePullPolicy":"Always","repositoryName":null,"repositoryPrefix":"","tag":null}` | Cronjob image configuration |
+| cronjob.image | object | `{"digest":null,"imagePullPolicy":"Always","repositoryName":null,"repositoryPrefix":null,"tag":null}` | Cronjob image configuration |
 | cronjob.image.digest | string | `nil` | Image digest |
 | cronjob.image.imagePullPolicy | string | `"Always"` | Image pull policy |
 | cronjob.image.repositoryName | string | `nil` | Alternative image name |
-| cronjob.image.repositoryPrefix | string | `""` | Image repository |
+| cronjob.image.repositoryPrefix | string | `nil` | Image repository |
 | cronjob.image.tag | string | `nil` | Image tag |
 | cronjob.metadata | object | `{"annotations":{}}` | Additional metadata to apply to the CronJob resource |
 | cronjob.metadata.annotations | object | `{}` | Additional annotations to apply to CronJob metadata |
@@ -57,10 +57,8 @@ The following table lists the configurable parameters of the Interop-eks-cronjob
 | cronjob.successfulJobsHistoryLimit | int | 0 | [successfulJobsHistoryLimit](https://kubernetes.io/docs/concepts/workloads/controllers/cron-jobs/#jobs-history-limits) field specifies the number of successful finished jobs to keep. Setting this field to 0 will not keep any successful jobs |
 | cronjob.suspend | boolean | `false` | [suspend](https://kubernetes.io/docs/concepts/workloads/controllers/cron-jobs/#schedule-suspension) field allows to suspend execution of Jobs for a CronJob.  @default -- false. |
 | cronjob.timeZone | string | `nil` | [Time zone](https://kubernetes.io/docs/concepts/workloads/controllers/cron-jobs/#time-zones) to use when calculating schedule |
-| externalSecrets.app.annotations | object | `{}` | Additional annotations applied to the ExternalSecret resource |
 | externalSecrets.app.create | bool | `false` | Enable ExternalSecret creation |
 | externalSecrets.app.data | list | `[]` | List of individual secret keys to sync from external secret manager. When externalSecrets.app.create is true, each secretKey is automatically injected as an env var in the CronJob, referencing externalSecrets.app.targetSecret.name (defaults to the service name). This is the ExternalSecret equivalent of the top-level "configmap" field. |
-| externalSecrets.app.labels | object | `{}` | Additional labels applied to the ExternalSecret resource |
 | externalSecrets.app.refreshInterval | string | `"0"` | Refresh interval for the secret (e.g., "1h", "30m") |
 | externalSecrets.app.refreshPolicy | string | `"OnChange"` | Refresh policy for the secret, allowed values: [ "OnChange", "Interval" ] |
 | externalSecrets.app.secretStoreRef | object | `{"kind":"SecretStore","name":""}` | Reference to SecretStore or ClusterSecretStore |
@@ -68,10 +66,8 @@ The following table lists the configurable parameters of the Interop-eks-cronjob
 | externalSecrets.app.targetSecret.creationPolicy | string | `"Merge"` | Creation policy: Owner, Orphan, Merge, None |
 | externalSecrets.app.targetSecret.deletionPolicy | string | `"Retain"` | Deletion policy: Retain, Delete |
 | externalSecrets.app.targetSecret.name | string | `""` | Name of the target secret (defaults to cronjob name) |
-| externalSecrets.flywayInitContainer.annotations | object | `{}` | Additional annotations applied to the ExternalSecret resource |
 | externalSecrets.flywayInitContainer.create | bool | `false` | Enable ExternalSecret creation |
 | externalSecrets.flywayInitContainer.data | list | `[]` | List of individual secret keys to sync from external secret manager. When externalSecrets.flywayInitContainer.create is true, each secretKey is automatically injected as an env var in the CronJob, referencing externalSecrets.flywayInitContainer.targetSecret.name (defaults to the service name). This is the ExternalSecret equivalent of the top-level "configmap" field. |
-| externalSecrets.flywayInitContainer.labels | object | `{}` | Additional labels applied to the ExternalSecret resource |
 | externalSecrets.flywayInitContainer.refreshInterval | string | `"0"` | Refresh interval for the secret (e.g., "1h", "30m") |
 | externalSecrets.flywayInitContainer.refreshPolicy | string | `"OnChange"` | Refresh policy for the secret, allowed values: [ "OnChange", "Interval" ] |
 | externalSecrets.flywayInitContainer.secretStoreRef | object | `{"kind":"SecretStore","name":""}` | Reference to SecretStore or ClusterSecretStore |
