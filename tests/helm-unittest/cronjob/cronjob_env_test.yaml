@@ -56,7 +56,24 @@ tests:
       - notExists:
           path: spec.jobTemplate.spec.template.spec.containers[0].envFrom
 
+  - it: does not render envFrom for app container when external secrets data is empty
+    set:
+      externalSecrets.app.create: true
+      externalSecrets.app.secretStoreRef.name: cluster-secret-store
+    asserts:
+      - notExists:
+          path: spec.jobTemplate.spec.template.spec.containers[0].envFrom
+
   - it: does not render envFrom for flyway init container when external secrets disabled
+    asserts:
+      - notExists:
+          path: spec.jobTemplate.spec.template.spec.initContainers[0].envFrom
+
+  - it: does not render envFrom for Flyway when external secrets data is empty
+    set:
+      cronjob.flywayInitContainer.create: true
+      externalSecrets.flywayInitContainer.create: true
+      externalSecrets.flywayInitContainer.secretStoreRef.name: cluster-secret-store
     asserts:
       - notExists:
           path: spec.jobTemplate.spec.template.spec.initContainers[0].envFrom
