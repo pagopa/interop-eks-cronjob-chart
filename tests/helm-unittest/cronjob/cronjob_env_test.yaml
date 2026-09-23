@@ -40,3 +40,85 @@ tests:
               configMapKeyRef:
                 name: test-cronjob
                 key: CONFIG_KEY
+
+  - it: renders envFrom for app container when external secrets enabled
+    values:
+      - cronjob-external-secrets-app.yaml
+    asserts:
+      - contains:
+          path: spec.jobTemplate.spec.template.spec.containers[0].envFrom
+          content:
+            secretRef:
+              name: test-cronjob
+
+  - it: does not render envFrom for app container when external secrets disabled
+    asserts:
+      - notExists:
+          path: spec.jobTemplate.spec.template.spec.containers[0].envFrom
+
+  - it: does not render envFrom for app container when external secrets data is empty
+    set:
+      externalSecrets.app.create: true
+      externalSecrets.app.secretStoreRef.name: cluster-secret-store
+    asserts:
+      - notExists:
+          path: spec.jobTemplate.spec.template.spec.containers[0].envFrom
+
+  - it: does not render envFrom for flyway init container when external secrets disabled
+    asserts:
+      - notExists:
+          path: spec.jobTemplate.spec.template.spec.initContainers[0].envFrom
+
+  - it: does not render envFrom for Flyway when external secrets data is empty
+    set:
+      cronjob.flywayInitContainer.create: true
+      externalSecrets.flywayInitContainer.create: true
+      externalSecrets.flywayInitContainer.secretStoreRef.name: cluster-secret-store
+    asserts:
+      - notExists:
+          path: spec.jobTemplate.spec.template.spec.initContainers[0].envFrom
+
+  - it: renders envFrom for app container with custom secret name
+    values:
+      - cronjob-external-secrets-app-custom.yaml
+    asserts:
+      - contains:
+          path: spec.jobTemplate.spec.template.spec.containers[0].envFrom
+          content:
+            secretRef:
+              name: custom-app-secret
+
+  - it: renders envFrom for flyway init container when external secrets enabled
+    values:
+      - cronjob-external-secrets-flyway.yaml
+    asserts:
+      - contains:
+          path: spec.jobTemplate.spec.template.spec.initContainers[0].envFrom
+          content:
+            secretRef:
+              name: test-cronjob-flyway
+
+  - it: renders envFrom for flyway init container with custom secret name
+    values:
+      - cronjob-external-secrets-flyway-custom.yaml
+    asserts:
+      - contains:
+          path: spec.jobTemplate.spec.template.spec.initContainers[0].envFrom
+          content:
+            secretRef:
+              name: custom-flyway-secret
+
+  - it: renders envFrom for both app and flyway containers when both external secrets enabled
+    values:
+      - cronjob-external-secrets-both.yaml
+    asserts:
+      - contains:
+          path: spec.jobTemplate.spec.template.spec.initContainers[0].envFrom
+          content:
+            secretRef:
+              name: test-cronjob-flyway
+      - contains:
+          path: spec.jobTemplate.spec.template.spec.containers[0].envFrom
+          content:
+            secretRef:
+              name: test-cronjob

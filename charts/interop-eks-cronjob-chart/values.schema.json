@@ -25,10 +25,10 @@
             "requests": {
               "properties": {
                 "cpu": {
-                  "type": "string"
+                  "type": ["string", "null"]
                 },
                 "memory": {
-                  "type": "string"
+                  "type": ["string", "null"]
                 }
               },
               "type": "object"
@@ -36,10 +36,10 @@
             "limits": {
               "properties": {
                 "cpu": {
-                  "type": "string"
+                  "type": ["string", "null"]
                 },
                 "memory": {
-                  "type": "string"
+                  "type": ["string", "null"]
                 }
               },
               "type": "object"
@@ -53,6 +53,54 @@
         },
         "flywayInitContainer": {
           "description": "Optional Flyway init container configuration",
+          "allOf": [
+            {
+              "if": {
+                "properties": {
+                  "create": { "const": true }
+                }
+              },
+              "then": {
+                "required": ["image"],
+                "properties": {
+                  "image": {
+                    "type": "object",
+                    "required": ["repositoryPrefix", "repositoryName"],
+                    "properties": {
+                      "repositoryPrefix": {
+                        "type": "string",
+                        "minLength": 1
+                      },
+                      "repositoryName": {
+                        "type": "string",
+                        "minLength": 1
+                      }
+                    },
+                    "anyOf": [
+                      {
+                        "required": ["tag"],
+                        "properties": {
+                          "tag": {
+                            "type": "string",
+                            "minLength": 1
+                          }
+                        }
+                      },
+                      {
+                        "required": ["digest"],
+                        "properties": {
+                          "digest": {
+                            "type": "string",
+                            "minLength": 1
+                          }
+                        }
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          ],
           "properties": {
             "create": {
               "description": "Enable the Flyway init container",
@@ -127,19 +175,35 @@
             },
             "env": {
               "description": "Environment variables specified as direct key/value pairs",
-              "type": "object"
+              "type": "object",
+              "propertyNames": {
+                "pattern": "^[A-Za-z_][A-Za-z0-9_]*$"
+              },
+              "default": {}
             },
             "envFromConfigmaps": {
               "description": "Environment variables sourced from external ConfigMap keys",
-              "type": "object"
+              "type": "object",
+              "propertyNames": {
+                "pattern": "^[A-Za-z_][A-Za-z0-9_]*$"
+              },
+              "default": {}
             },
             "envFromSecrets": {
               "description": "Environment variables sourced from external Secret keys",
-              "type": "object"
+              "type": "object",
+              "propertyNames": {
+                "pattern": "^[A-Za-z_][A-Za-z0-9_]*$"
+              },
+              "default": {}
             },
             "envFromFieldRef": {
               "description": "Environment variables sourced from Pod fields via the downward API",
-              "type": "object"
+              "type": "object",
+              "propertyNames": {
+                "pattern": "^[A-Za-z_][A-Za-z0-9_]*$"
+              },
+              "default": {}
             },
             "resources": {
               "description": "Resource requests and limits for the Flyway init container; defaults to cronjob.resources if not set",
@@ -147,10 +211,10 @@
                 "requests": {
                   "properties": {
                     "cpu": {
-                      "type": "string"
+                      "type": ["string", "null"]
                     },
                     "memory": {
-                      "type": "string"
+                      "type": ["string", "null"]
                     }
                   },
                   "type": "object"
@@ -158,10 +222,10 @@
                 "limits": {
                   "properties": {
                     "cpu": {
-                      "type": "string"
+                      "type": ["string", "null"]
                     },
                     "memory": {
-                      "type": "string"
+                      "type": ["string", "null"]
                     }
                   },
                   "type": "object"
@@ -171,12 +235,52 @@
             }
           },
           "type": "object"
+        },
+        "env": {
+          "description": "Environment variables for main container",
+          "type": "object",
+          "propertyNames": {
+            "pattern": "^[A-Za-z_][A-Za-z0-9_]*$"
+          },
+          "default": {}
+        },
+        "envFromConfigmaps": {
+          "description": "Main container environment variables sourced from ConfigMaps",
+          "type": "object",
+          "propertyNames": {
+            "pattern": "^[A-Za-z_][A-Za-z0-9_]*$"
+          },
+          "default": {}
+        },
+        "envFromSecrets": {
+          "description": "Main container environment variables sourced from Secrets",
+          "type": "object",
+          "propertyNames": {
+            "pattern": "^[A-Za-z_][A-Za-z0-9_]*$"
+          },
+          "default": {}
+        },
+        "envFromFieldRef": {
+          "description": "Main container environment variables sourced from pod fieldRef",
+          "type": "object",
+          "propertyNames": {
+            "pattern": "^[A-Za-z_][A-Za-z0-9_]*$"
+          },
+          "default": {}
         }
       },
       "required": [
         "resources",
         "schedule"
       ]
+    },
+    "configmap": {
+      "description": "ConfigMap key/value entries used by deployment env injection",
+      "type": "object",
+      "propertyNames": {
+        "pattern": "^[A-Za-z_][A-Za-z0-9_]*$"
+      },
+      "default": {}
     },
     "name": {
       "description": "Service name",
@@ -287,271 +391,265 @@
       }
     },
     "externalSecrets": {
-      "description": "External Secrets Operator configuration",
+      "description": "External Secrets Operator configuration - separate configuration for app and Flyway init container",
       "type": "object",
       "properties": {
-        "create": {
-          "description": "Enable ExternalSecret creation",
-          "type": "boolean",
-          "default": false
-        },
-        "refreshInterval": {
-          "description": "Refresh interval for the secret (e.g., '1h', '30m')",
-          "type": "string",
-          "default": "0"
-        },
-        "refreshPolicy": {
-          "description": "Refresh policy for the secret",
-          "type": "string",
-          "enum": ["OnChange", "Interval"],
-          "default": "OnChange"
-        },
-        "secretStoreRef": {
-          "description": "Reference to SecretStore or ClusterSecretStore",
+        "app": {
+          "description": "External Secrets configuration for the main application container",
           "type": "object",
           "properties": {
-            "name": {
-              "description": "Name of the SecretStore",
-              "type": "string"
+            "create": {
+              "description": "Enable ExternalSecret creation for app container",
+              "type": "boolean",
+              "default": false
             },
-            "kind": {
-              "description": "Kind of the store",
+            "refreshInterval": {
+              "description": "Refresh interval for the secret (e.g., '1h', '30m')",
               "type": "string",
-              "enum": ["SecretStore", "ClusterSecretStore"],
-              "default": "SecretStore"
-            }
-          },
-          "required": ["name"]
-        },
-        "targetSecret": {
-          "description": "Target Kubernetes Secret configuration",
-          "type": "object",
-          "properties": {
-            "name": {
-              "description": "Name of the target secret (defaults to microservice name)",
-              "type": "string"
+              "default": "0"
             },
-            "creationPolicy": {
-              "description": "Creation policy for the target secret",
+            "refreshPolicy": {
+              "description": "Refresh policy for the secret",
               "type": "string",
-              "enum": ["Owner", "Orphan", "Merge", "None"],
-              "default": "Merge"
+              "enum": ["OnChange", "Interval"],
+              "default": "OnChange"
             },
-            "deletionPolicy": {
-              "description": "Deletion policy for the target secret",
-              "type": "string",
-              "enum": ["Retain", "Delete"],
-              "default": "Retain"
-            }
-          }
-        },
-        "data": {
-          "description": "List of individual secret keys to sync from external secret manager",
-          "type": "array",
-          "items": {
-            "type": "object",
-            "properties": {
-              "secretKey": {
-                "description": "Key name in the target Kubernetes Secret",
-                "type": "string"
-              },
-              "remoteRef": {
-                "description": "Reference to the remote secret",
-                "type": "object",
-                "properties": {
-                  "key": {
-                    "description": "Remote secret key/path",
-                    "type": "string"
-                  },
-                  "property": {
-                    "description": "Property to extract from the remote secret",
-                    "type": "string"
-                  },
-                  "version": {
-                    "description": "Version identifier for the remote secret",
-                    "type": "string"
-                  },
-                  "conversionStrategy": {
-                    "description": "Conversion strategy",
-                    "type": "string"
-                  },
-                  "decodingStrategy": {
-                    "description": "Decoding strategy",
-                    "type": "string"
-                  }
+            "secretStoreRef": {
+              "description": "Reference to SecretStore or ClusterSecretStore",
+              "type": "object",
+              "properties": {
+                "name": {
+                  "description": "Name of the SecretStore",
+                  "type": "string"
                 },
-                "required": ["key"],
-                "additionalProperties": false
+                "kind": {
+                  "description": "Kind of the store",
+                  "type": "string",
+                  "enum": ["SecretStore", "ClusterSecretStore"],
+                  "default": "SecretStore"
+                }
               }
             },
-            "required": ["secretKey", "remoteRef"],
-            "additionalProperties": false
-          },
-          "default": []
-        },
-        "dataFrom": {
-          "description": "List of sources to fetch all key/value pairs from. Each entry must contain exactly one of: extract, find, or sourceRef.",
-          "type": ["array", "null"],
-          "items": {
-            "type": "object",
-            "oneOf": [
-              {
-                "description": "Fetch all key/value pairs from a single specific secret",
+            "targetSecret": {
+              "description": "Target Kubernetes Secret configuration",
+              "type": "object",
+              "properties": {
+                "name": {
+                  "description": "Name of the target secret (defaults to microservice name)",
+                  "type": "string"
+                },
+                "creationPolicy": {
+                  "description": "Creation policy for the target secret",
+                  "type": "string",
+                  "enum": ["Owner", "Orphan", "Merge", "None"],
+                  "default": "Merge"
+                },
+                "deletionPolicy": {
+                  "description": "Deletion policy for the target secret",
+                  "type": "string",
+                  "enum": ["Retain", "Delete"],
+                  "default": "Retain"
+                }
+              }
+            },
+            "data": {
+              "description": "List of individual secret keys to sync from external secret manager for the app container",
+              "type": "array",
+              "items": {
+                "type": "object",
                 "properties": {
-                  "extract": {
+                  "secretKey": {
+                    "description": "Key name in the target Kubernetes Secret",
+                    "type": "string",
+                    "pattern": "^[A-Za-z_][A-Za-z0-9_]*$"
+                  },
+                  "remoteRef": {
+                    "description": "Reference to the remote secret",
                     "type": "object",
                     "properties": {
                       "key": {
                         "description": "Remote secret key/path",
                         "type": "string"
                       },
+                      "property": {
+                        "description": "Property to extract from the remote secret",
+                        "type": "string"
+                      },
                       "version": {
                         "description": "Version identifier for the remote secret",
+                        "type": "string"
+                      },
+                      "conversionStrategy": {
+                        "description": "Conversion strategy",
+                        "type": "string"
+                      },
+                      "decodingStrategy": {
+                        "description": "Decoding strategy",
+                        "type": "string"
+                      }
+                    },
+                    "required": ["key"],
+                    "additionalProperties": false
+                  }
+                },
+                "required": ["secretKey", "remoteRef"],
+                "additionalProperties": false
+              },
+              "default": []
+            }
+          },
+          "allOf": [
+            {
+              "if": {
+                "properties": {
+                  "create": { "const": true }
+                }
+              },
+              "then": {
+                "properties": {
+                  "secretStoreRef": {
+                    "required": ["name"],
+                    "properties": {
+                      "name": {
+                        "type": "string",
+                        "minLength": 1
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          ]
+        },
+        "flywayInitContainer": {
+          "description": "External Secrets configuration for the Flyway init container",
+          "type": "object",
+          "properties": {
+            "create": {
+              "description": "Enable ExternalSecret creation for Flyway init container",
+              "type": "boolean",
+              "default": false
+            },
+            "refreshInterval": {
+              "description": "Refresh interval for the secret (e.g., '1h', '30m')",
+              "type": "string",
+              "default": "0"
+            },
+            "refreshPolicy": {
+              "description": "Refresh policy for the secret",
+              "type": "string",
+              "enum": ["OnChange", "Interval"],
+              "default": "OnChange"
+            },
+            "secretStoreRef": {
+              "description": "Reference to SecretStore or ClusterSecretStore",
+              "type": "object",
+              "properties": {
+                "name": {
+                  "description": "Name of the SecretStore",
+                  "type": "string"
+                },
+                "kind": {
+                  "description": "Kind of the store",
+                  "type": "string",
+                  "enum": ["SecretStore", "ClusterSecretStore"],
+                  "default": "SecretStore"
+                }
+              }
+            },
+            "targetSecret": {
+              "description": "Target Kubernetes Secret configuration",
+              "type": "object",
+              "properties": {
+                "name": {
+                  "description": "Name of the target secret (defaults to microservice name with -flyway suffix)",
+                  "type": "string"
+                },
+                "creationPolicy": {
+                  "description": "Creation policy for the target secret",
+                  "type": "string",
+                  "enum": ["Owner", "Orphan", "Merge", "None"],
+                  "default": "Merge"
+                },
+                "deletionPolicy": {
+                  "description": "Deletion policy for the target secret",
+                  "type": "string",
+                  "enum": ["Retain", "Delete"],
+                  "default": "Retain"
+                }
+              }
+            },
+            "data": {
+              "description": "List of individual secret keys to sync from external secret manager for the Flyway init container",
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "secretKey": {
+                    "description": "Key name in the target Kubernetes Secret",
+                    "type": "string",
+                    "pattern": "^[A-Za-z_][A-Za-z0-9_]*$"
+                  },
+                  "remoteRef": {
+                    "description": "Reference to the remote secret",
+                    "type": "object",
+                    "properties": {
+                      "key": {
+                        "description": "Remote secret key/path",
                         "type": "string"
                       },
                       "property": {
                         "description": "Property to extract from the remote secret",
                         "type": "string"
                       },
+                      "version": {
+                        "description": "Version identifier for the remote secret",
+                        "type": "string"
+                      },
                       "conversionStrategy": {
-                        "description": "Conversion strategy for secret keys",
-                        "type": "string",
-                        "enum": ["Default", "Unicode", "PascalCase", "CamelCase", "UpperCase", "LowerCase"]
+                        "description": "Conversion strategy",
+                        "type": "string"
                       },
                       "decodingStrategy": {
-                        "description": "Decoding strategy for secret values",
-                        "type": "string",
-                        "enum": ["None", "Base64", "Base64URL", "Auto"]
-                      },
-                      "metadataPolicy": {
-                        "description": "Policy for fetching secret metadata",
-                        "type": "string",
-                        "enum": ["None", "Fetch"]
+                        "description": "Decoding strategy",
+                        "type": "string"
                       }
                     },
                     "required": ["key"],
                     "additionalProperties": false
-                  },
-                  "rewrite": {
-                    "$ref": "#/properties/externalSecrets/definitions/rewrite"
                   }
                 },
-                "required": ["extract"],
+                "required": ["secretKey", "remoteRef"],
                 "additionalProperties": false
               },
-              {
-                "description": "Search for multiple secrets by name (regexp) or tags/metadata",
+              "default": []
+            }
+          },
+          "allOf": [
+            {
+              "if": {
                 "properties": {
-                  "find": {
-                    "type": "object",
+                  "create": { "const": true }
+                }
+              },
+              "then": {
+                "properties": {
+                  "secretStoreRef": {
+                    "required": ["name"],
                     "properties": {
-                      "path": {
-                        "description": "Search path prefix",
-                        "type": "string"
-                      },
                       "name": {
-                        "description": "Filter by secret name using regexp",
-                        "type": "object",
-                        "properties": {
-                          "regexp": {
-                            "type": "string"
-                          }
-                        },
-                        "required": ["regexp"],
-                        "additionalProperties": false
-                      },
-                      "tags": {
-                        "description": "Filter by tags/metadata",
-                        "type": "object",
-                        "additionalProperties": {
-                          "type": "string"
-                        }
-                      },
-                      "conversionStrategy": {
-                        "description": "Conversion strategy for secret keys",
                         "type": "string",
-                        "enum": ["Default", "Unicode", "PascalCase", "CamelCase", "UpperCase", "LowerCase"]
-                      },
-                      "decodingStrategy": {
-                        "description": "Decoding strategy for secret values",
-                        "type": "string",
-                        "enum": ["None", "Base64", "Base64URL", "Auto"]
+                        "minLength": 1
                       }
-                    },
-                    "additionalProperties": false
-                  },
-                  "rewrite": {
-                    "$ref": "#/properties/externalSecrets/definitions/rewrite"
+                    }
                   }
-                },
-                "required": ["find"],
-                "additionalProperties": false
-              },
-              {
-                "description": "Fetch values from a Generator resource",
-                "properties": {
-                  "sourceRef": {
-                    "type": "object",
-                    "properties": {
-                      "generatorRef": {
-                        "type": "object",
-                        "properties": {
-                          "apiVersion": {
-                            "description": "API version of the Generator resource",
-                            "type": "string"
-                          },
-                          "kind": {
-                            "description": "Kind of the Generator resource",
-                            "type": "string"
-                          },
-                          "name": {
-                            "description": "Name of the Generator resource",
-                            "type": "string"
-                          }
-                        },
-                        "required": ["apiVersion", "kind", "name"],
-                        "additionalProperties": false
-                      }
-                    },
-                    "required": ["generatorRef"],
-                    "additionalProperties": false
-                  }
-                },
-                "required": ["sourceRef"],
-                "additionalProperties": false
+                }
               }
-            ]
-          }
+            }
+          ]
         }
       },
-      "additionalProperties": true,
-      "definitions": {
-        "rewrite": {
-          "description": "Rewrite rules to transform secret key names",
-          "type": "array",
-          "items": {
-            "type": "object",
-            "properties": {
-              "regexp": {
-                "type": "object",
-                "properties": {
-                  "source": {
-                    "description": "Regexp pattern to match",
-                    "type": "string"
-                  },
-                  "target": {
-                    "description": "Replacement string",
-                    "type": "string"
-                  }
-                },
-                "required": ["source", "target"],
-                "additionalProperties": false
-              }
-            },
-            "additionalProperties": false
-          }
-        }
-      }
+      "additionalProperties": false
     }
   },
   "required": [

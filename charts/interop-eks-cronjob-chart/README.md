@@ -23,10 +23,10 @@ The following table lists the configurable parameters of the Interop-eks-cronjob
 | cronjob.automountServiceAccountToken | bool | true | [automountServiceAccountToken](https://kubernetes.io/docs/tasks/configure-pod-container/configure-service-account/#use-the-default-service-account-to-access-the-api-server) |
 | cronjob.backoffLimit | int | `6` | [backoffLimit](https://kubernetes.io/docs/concepts/workloads/controllers/job/#handling-pod-and-container-failures) the number of retries before marking a Job as failed. |
 | cronjob.concurrencyPolicy | string | Allow | [concurrencyPolicy](https://kubernetes.io/docs/concepts/workloads/controllers/cron-jobs/#concurrency-policy) field specifies how to treat concurrent executions of a Job that is created by this CronJob. |
-| cronjob.env | object | `nil` | List of environment variables for a container, specifying a value directly for each named variable |
-| cronjob.envFromConfigmaps | object | `nil` | List of environment variables for a container, specifying a key from a Configmap for each named variable (k8s equivalent of envFrom.configMapRef) |
-| cronjob.envFromFieldRef | object | `nil` | List of pod fields used as values for environment variablesenvironment variables for a container, specifying a key from a Secret for each named variable (k8s equivalent of env.valueFrom.fieldRef.fieldPath) |
-| cronjob.envFromSecrets | object | `nil` | List of environment variables for a container, specifying a key from a Secret for each named variable (k8s equivalent of envFrom.secretRef) |
+| cronjob.env | object | `{}` | List of environment variables for a container, specifying a value directly for each named variable |
+| cronjob.envFromConfigmaps | object | `{}` | List of environment variables for a container, specifying a key from a Configmap for each named variable (k8s equivalent of envFrom.configMapRef) |
+| cronjob.envFromFieldRef | object | `{}` | List of pod fields used as values for environment variablesenvironment variables for a container, specifying a key from a Secret for each named variable (k8s equivalent of env.valueFrom.fieldRef.fieldPath) |
+| cronjob.envFromSecrets | object | `{}` | List of environment variables for a container, specifying a key from a Secret for each named variable (k8s equivalent of envFrom.secretRef) |
 | cronjob.failedJobsHistoryLimit | int | 1 | [failedJobsHistoryLimit](https://kubernetes.io/docs/concepts/workloads/controllers/cron-jobs/#jobs-history-limits) field specifies the number of failed finished jobs to keep. Setting this field to 0 will not keep any failed jobs. |
 | cronjob.flywayInitContainer.create | bool | `false` |  |
 | cronjob.flywayInitContainer.downloadRedshiftDriver | bool | `false` | downloadRedshiftDriver: if true, the init container will download the Redshift JDBC driver from the official AWS S3 bucket and place it in the Flyway drivers directory before executing any Flyway command. This is required when using Flyway with Redshift, as the driver is not included in the default Flyway image. |
@@ -57,16 +57,24 @@ The following table lists the configurable parameters of the Interop-eks-cronjob
 | cronjob.successfulJobsHistoryLimit | int | 0 | [successfulJobsHistoryLimit](https://kubernetes.io/docs/concepts/workloads/controllers/cron-jobs/#jobs-history-limits) field specifies the number of successful finished jobs to keep. Setting this field to 0 will not keep any successful jobs |
 | cronjob.suspend | boolean | `false` | [suspend](https://kubernetes.io/docs/concepts/workloads/controllers/cron-jobs/#schedule-suspension) field allows to suspend execution of Jobs for a CronJob.  @default -- false. |
 | cronjob.timeZone | string | `nil` | [Time zone](https://kubernetes.io/docs/concepts/workloads/controllers/cron-jobs/#time-zones) to use when calculating schedule |
-| externalSecrets.create | bool | `false` | Enable ExternalSecret creation |
-| externalSecrets.data | list | `[]` | List of individual secret keys to sync from external secret manager |
-| externalSecrets.dataFrom | string | `nil` |  |
-| externalSecrets.refreshInterval | string | `"0"` | Refresh interval for the secret (e.g., "1h", "30m") |
-| externalSecrets.refreshPolicy | string | `"OnChange"` | Refresh policy for the secret, allowed values: [ "OnChange", "Interval" ] |
-| externalSecrets.secretStoreRef | object | `{"kind":"SecretStore","name":""}` | Reference to SecretStore or ClusterSecretStore |
-| externalSecrets.targetSecret | object | `{"creationPolicy":"Merge","deletionPolicy":"Retain","name":""}` | Target Kubernetes Secret configuration |
-| externalSecrets.targetSecret.creationPolicy | string | `"Merge"` | Creation policy: Owner, Orphan, Merge, None |
-| externalSecrets.targetSecret.deletionPolicy | string | `"Retain"` | Deletion policy: Retain, Delete |
-| externalSecrets.targetSecret.name | string | `""` | Name of the target secret (defaults to cronjob name) |
+| externalSecrets.app.create | bool | `false` | Enable ExternalSecret creation |
+| externalSecrets.app.data | list | `[]` | List of individual secret keys to sync from external secret manager. When externalSecrets.app.create is true, each secretKey is automatically injected as an env var in the CronJob, referencing externalSecrets.app.targetSecret.name (defaults to the service name). This is the ExternalSecret equivalent of the top-level "configmap" field. |
+| externalSecrets.app.refreshInterval | string | `"0"` | Refresh interval for the secret (e.g., "1h", "30m") |
+| externalSecrets.app.refreshPolicy | string | `"OnChange"` | Refresh policy for the secret, allowed values: [ "OnChange", "Interval" ] |
+| externalSecrets.app.secretStoreRef | object | `{"kind":"SecretStore","name":""}` | Reference to SecretStore or ClusterSecretStore |
+| externalSecrets.app.targetSecret | object | `{"creationPolicy":"Merge","deletionPolicy":"Retain","name":""}` | Target Kubernetes Secret configuration |
+| externalSecrets.app.targetSecret.creationPolicy | string | `"Merge"` | Creation policy: Owner, Orphan, Merge, None |
+| externalSecrets.app.targetSecret.deletionPolicy | string | `"Retain"` | Deletion policy: Retain, Delete |
+| externalSecrets.app.targetSecret.name | string | `""` | Name of the target secret (defaults to cronjob name) |
+| externalSecrets.flywayInitContainer.create | bool | `false` | Enable ExternalSecret creation |
+| externalSecrets.flywayInitContainer.data | list | `[]` | List of individual secret keys to sync from external secret manager. When externalSecrets.flywayInitContainer.create is true, each secretKey is automatically injected as an env var in the CronJob, referencing externalSecrets.flywayInitContainer.targetSecret.name (defaults to the service name). This is the ExternalSecret equivalent of the top-level "configmap" field. |
+| externalSecrets.flywayInitContainer.refreshInterval | string | `"0"` | Refresh interval for the secret (e.g., "1h", "30m") |
+| externalSecrets.flywayInitContainer.refreshPolicy | string | `"OnChange"` | Refresh policy for the secret, allowed values: [ "OnChange", "Interval" ] |
+| externalSecrets.flywayInitContainer.secretStoreRef | object | `{"kind":"SecretStore","name":""}` | Reference to SecretStore or ClusterSecretStore |
+| externalSecrets.flywayInitContainer.targetSecret | object | `{"creationPolicy":"Merge","deletionPolicy":"Retain","name":""}` | Target Kubernetes Secret configuration |
+| externalSecrets.flywayInitContainer.targetSecret.creationPolicy | string | `"Merge"` | Creation policy: Owner, Orphan, Merge, None |
+| externalSecrets.flywayInitContainer.targetSecret.deletionPolicy | string | `"Retain"` | Deletion policy: Retain, Delete |
+| externalSecrets.flywayInitContainer.targetSecret.name | string | `""` | Name of the target secret (defaults to cronjob name with -flyway suffix) |
 | name | string | `nil` | Name of the service that will be deployed on K8s cluster |
 | namespace | string | `nil` | Namespace hosting the service that will be deployed on K8s cluster |
 | serviceAccount.roleArn | string | `nil` | Optional IAM Role ARN for ServiceAccount annotation eks.amazonaws.com/role-arn (supports templating) |
@@ -81,6 +89,8 @@ To reference a key from the ConfigMap, a key/value pair must be added to the "co
 The key/value pair must be defined as follows:
 * Key: mapped to both the name of the environment variable used by the CronJob and the key defined in the ConfigMap; therefore the two keys coincide;
 * Value: the actual value associated with the key defined above
+
+Note: names used as Kubernetes environment variables are validated with the pattern `^[A-Za-z_][A-Za-z0-9_]*$`. For this reason, names such as `KEY-1`, `STA-GE`, or `MY-VAR` are rejected, while valid examples are `KEY_1`, `STAGE`, or `MY_VAR`.
 
 By declaring the "configmap" section in a CronJob's _values.yaml_ file, the following will happen automatically:
 * a ConfigMap with the same "name" as the CronJob will be created;
@@ -383,26 +393,34 @@ annotations:
 ## 4. External Secrets Configuration
 
 The chart supports [External Secrets Operator](https://external-secrets.io/) through the `externalSecrets` block.
+Configuration is split into two independent sub-sections:
 
-When `externalSecrets.create: true`, the chart renders:
+- `externalSecrets.app` — for the main CronJob container
+- `externalSecrets.flywayInitContainer` — for the Flyway init container
 
+Each sub-section is independent: you can enable one, both, or neither.
+
+When `create: true`, the chart renders for the respective container:
 - an `ExternalSecret` resource
 - a contract `Secret` (opaque, with empty `stringData`) used as a deterministic target and rollout marker
 
-Both resources point to the same target Secret name (`externalSecrets.targetSecret.name` or, by default, `name`).
-
 ### 4.1 Enable and Required Fields
 
-Minimal configuration:
+Minimal configuration for both containers:
 
 ```yaml
 externalSecrets:
-  create: true
-  secretStoreRef:
-    name: my-secret-store
+  app:
+    create: true
+    secretStoreRef:
+      name: my-secret-store
+  flywayInitContainer:
+    create: true
+    secretStoreRef:
+      name: my-secret-store
 ```
 
-`secretStoreRef.name` is required when `create` is enabled.
+`secretStoreRef.name` is required and must be non-empty when `create` is enabled.
 
 ### 4.2 Refresh and Target Secret Policies
 
@@ -415,16 +433,28 @@ Example:
 
 ```yaml
 externalSecrets:
-  create: true
-  refreshPolicy: Interval
-  refreshInterval: 1h
-  secretStoreRef:
-    name: my-secret-store
-    kind: ClusterSecretStore
-  targetSecret:
-    name: "my-service-es"
-    creationPolicy: Merge
-    deletionPolicy: Retain
+  app:
+    create: true
+    refreshPolicy: Interval
+    refreshInterval: 1h
+    secretStoreRef:
+      name: my-secret-store
+      kind: ClusterSecretStore
+    targetSecret:
+      name: "my-service-es"
+      creationPolicy: Merge
+      deletionPolicy: Retain
+  flywayInitContainer:
+    create: true
+    refreshPolicy: Interval
+    refreshInterval: 1h
+    secretStoreRef:
+      name: my-secret-store
+      kind: ClusterSecretStore
+    targetSecret:
+      name: "my-service-flyway-es"   # defaults to "<name>-flyway" if omitted
+      creationPolicy: Merge
+      deletionPolicy: Retain
 ```
 
 ### 4.3 `data`: Explicit Key Mapping
@@ -435,81 +465,95 @@ Each item requires:
 
 - `secretKey`
 - `remoteRef.key`
+
+Optional remote fields:
+
 - `remoteRef.property`
-
-Optional remote fields: `version`, `conversionStrategy`, `decodingStrategy`.
-
-```yaml
-externalSecrets:
-  create: true
-  secretStoreRef:
-    name: my-secret-store
-  data:
-    - secretKey: username
-      remoteRef:
-        key: "/my-app/db"
-        property: username
-    - secretKey: password
-      remoteRef:
-        key: "/my-app/db"
-        property: password
-        version: AWSCURRENT
-```
-
-### 4.4 `dataFrom`: Bulk Fetch
-
-Use `dataFrom` to import all key/value pairs from a source.
-Each list entry must contain exactly one of:
-
-- `extract`
-- `find`
-- `sourceRef`
-
-`rewrite` rules are supported for `extract` and `find` entries.
+- `remoteRef.version`
+- `remoteRef.conversionStrategy`
+- `remoteRef.decodingStrategy`
 
 ```yaml
 externalSecrets:
-  create: true
-  secretStoreRef:
-    name: my-secret-store
-  dataFrom:
-    - extract:
-        key: my-app/prod/config
-      rewrite:
-        - regexp:
-            source: "my-app/prod/(.*)"
-            target: "$1"
-    - find:
-        path: my-app/prod/
-        name:
-          regexp: "^my-app/prod/.*"
-    - sourceRef:
-        generatorRef:
-          apiVersion: generators.external-secrets.io/v1alpha1
-          kind: Password
-          name: my-password-generator
+  app:
+    create: true
+    secretStoreRef:
+      name: my-secret-store
+    data:
+      - secretKey: username
+        remoteRef:
+          key: "/my-app/db"
+          property: username
+      - secretKey: password
+        remoteRef:
+          key: "/my-app/db"
+          property: password
+          version: AWSCURRENT
+  flywayInitContainer:
+    create: true
+    secretStoreRef:
+      name: my-secret-store
+    data:
+      - secretKey: db-password
+        remoteRef:
+          key: "/my-app/db"
+          property: password
 ```
 
-### 4.5 Template Support
+### 4.4 Template Support
 
-The chart evaluates Helm templates in these `externalSecrets` fields:
+The chart evaluates Helm templates in these `externalSecrets` fields (for both `app` and `flywayInitContainer`):
 
 - `secretStoreRef.name`
 - `targetSecret.name`
 - `data[].remoteRef.key`
 - `data[].remoteRef.property`
-- `dataFrom[].extract.key`
-- `dataFrom[].extract.property`
-- `dataFrom[].find.path`
-- `dataFrom[].sourceRef.generatorRef.name`
 
 This allows environment-aware naming conventions directly in values files.
 
-### 4.6 Labels, Annotations, and Contract Marker
+### 4.5 Labels, Annotations, and Contract Marker
 
-- `externalSecrets.labels` and `externalSecrets.annotations` are applied to the `ExternalSecret` metadata.
-- The chart adds a hash marker annotation (`externalsecret/secret-data-hash`) on the generated `Secret`.
-- When `data` or `dataFrom` are configured, the `ExternalSecret.target.template.metadata.annotations` includes `externalsecret/secret-applied-hash`.
+- `labels` and `annotations` are applied to the `ExternalSecret` metadata.
+- When `data` is configured, the chart adds `externalsecret/secret-applied-hash` to the `ExternalSecret` target template and `externalsecret/secret-data-hash` to the contract `Secret`.
 
-These markers are used to keep a stable contract between rendered resources and applied secret content.
+The hash is computed from the JSON-serialized content of `data`. It changes whenever the secret mapping changes.
+
+---
+
+## 4.6 Integration with the CronJob
+
+When `create: true` and `data` is non-empty, the chart automatically adds an `envFrom` block on the respective container referencing the target Secret.
+
+### 4.6.1 Generated Resources
+
+| Sub-section | ExternalSecret | Secret | Target name |
+|-------------|---------------|--------|-------------|
+| `app` | `externalSecret.yaml` | `secret.yaml` | `targetSecret.name` or `.Values.name` |
+| `flywayInitContainer` | `externalSecret.flyway.yaml` | `secret.flyway.yaml` | `targetSecret.name` or `<name>-flyway` |
+
+### 4.6.2 Contract Secret
+
+The chart always renders a bare Kubernetes `Secret` alongside the `ExternalSecret`. This contract Secret:
+
+- has `type: Opaque` and empty `stringData: {}`
+- is managed by the chart (not by ESO), so it exists from the first `helm install`
+- carries the annotation `externalsecret/secret-data-hash: <sha256>`, computed from `data`
+
+This ensures the target Secret is present in the cluster before the CronJob Pod is scheduled.
+
+### 4.6.3 CronJob env injection
+
+When `create: true` and `data` is non-empty, the chart automatically injects an `envFrom` block into the container:
+
+```yaml
+# main container (externalSecrets.app)
+envFrom:
+  - secretRef:
+      name: my-service   # = externalSecrets.app.targetSecret.name or .Values.name
+
+# flyway init container (externalSecrets.flywayInitContainer)
+envFrom:
+  - secretRef:
+      name: my-service-flyway  # = externalSecrets.flywayInitContainer.targetSecret.name or "<name>-flyway"
+```
 
