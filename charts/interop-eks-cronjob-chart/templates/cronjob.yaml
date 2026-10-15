@@ -61,6 +61,7 @@
 {{- $flyway_repository_name := "" }}
 {{- $flyway_image_digest := "" }}
 {{- $flyway_image_tag := "" }}
+{{- $flyway_migrations_configmap := "" }}
 
 {{- if $flyway_enabled }}
 {{- if not .Values.cronjob.flywayInitContainer.image }}
@@ -83,8 +84,24 @@
 {{- $flyway_image_tag = (nospace (cat ":" .Values.cronjob.flywayInitContainer.image.tag)) }}
 {{- end }}
 
+{{- if and .Values.cronjob.flywayInitContainer.migrationDomain .Values.cronjob.flywayInitContainer.migrationsConfigmap }}
+{{ fail "Invalid configuration: migrationDomain and migrationsConfigmap in flywayInitContainer cannot be defined at the same time." }}
+{{- end }}
+{{- if and .Values.cronjob.flywayInitContainer.migrationDomain .Values.cronjob.flywayInitContainer.migrationPaths }}
+{{ fail "Invalid configuration: migrationDomain and migrationPaths in flywayInitContainer cannot be defined at the same time." }}
+{{- end }}
 {{- if and .Values.cronjob.flywayInitContainer.migrationsConfigmap .Values.cronjob.flywayInitContainer.migrationPaths }}
 {{ fail "Invalid configuration - Both migrationsConfigmap and migrationPaths in flywayInitContainer cannot be defined at the same time." }}
+{{- end }}
+
+{{- if .Values.cronjob.flywayInitContainer.migrationDomain }}
+{{- $migrationsRoot := .Values.migrations | default dict }}
+{{- if not (hasKey $migrationsRoot .Values.cronjob.flywayInitContainer.migrationDomain) }}
+{{ fail (printf "Invalid configuration: cronjob.flywayInitContainer.migrationDomain '%s' not found in root migrations map." .Values.cronjob.flywayInitContainer.migrationDomain) }}
+{{- end }}
+{{- $flyway_migrations_configmap = .Values.cronjob.flywayInitContainer.migrationDomain }}
+{{- else if .Values.cronjob.flywayInitContainer.migrationsConfigmap }}
+{{- $flyway_migrations_configmap = .Values.cronjob.flywayInitContainer.migrationsConfigmap }}
 {{- end }}
 
 {{- if and .Values.cronjob.flywayInitContainer.executeFlywayMigrate .Values.cronjob.flywayInitContainer.executeFlywayRepair -}}
@@ -204,7 +221,7 @@ spec:
                       fieldPath: {{ $val | quote }}
                 {{- end }}
                 {{- end }}
-              {{- if .Values.cronjob.flywayInitContainer.migrationsConfigmap }}
+              {{- if $flyway_migrations_configmap }}
               volumeMounts:
                 - name: migrations-files
                   mountPath: "/flyway/sql"
@@ -290,14 +307,14 @@ spec:
               volumeMounts:
                 {{- toYaml .Values.cronjob.volumeMounts | nindent 16 }}
               {{- end }}
-          {{- if and .Values.cronjob (or .Values.cronjob.volumes (and $flyway_enabled .Values.cronjob.flywayInitContainer.migrationsConfigmap)) }}
+          {{- if and .Values.cronjob (or .Values.cronjob.volumes (and $flyway_enabled $flyway_migrations_configmap)) }}
           volumes:
-            {{- if and $flyway_enabled .Values.cronjob.flywayInitContainer.migrationsConfigmap }}
+            {{- if and $flyway_enabled $flyway_migrations_configmap }}
             - name: migrations-files
               projected:
                 sources:
                   - configMap:
-                      name: {{ .Values.cronjob.flywayInitContainer.migrationsConfigmap }}
+                      name: {{ $flyway_migrations_configmap }}
             {{- end }}
             {{ if .Values.cronjob.volumes }}
             {{- toYaml .Values.cronjob.volumes | nindent 12 }}

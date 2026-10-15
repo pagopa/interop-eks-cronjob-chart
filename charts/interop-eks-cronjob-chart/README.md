@@ -41,6 +41,7 @@ The following table lists the configurable parameters of the Interop-eks-cronjob
 | cronjob.flywayInitContainer.image.repositoryName | string | `"flyway/flyway"` | Image repository name. Defaults to "flyway/flyway" (official Flyway image). Override to use a custom migration image (e.g. "interop-flyway-migrations"). |
 | cronjob.flywayInitContainer.image.repositoryPrefix | string | `"docker.io"` | Image repository prefix. Defaults to "docker.io" (official Docker Hub namespace). Override to use a custom registry (e.g. a private ECR prefix). |
 | cronjob.flywayInitContainer.image.tag | string | `"8.2.3"` | Image tag. Defaults to "8.2.3" (official Flyway release). Override to pin a different version. |
+| cronjob.flywayInitContainer.migrationDomain | string | `nil` | Domain key used to select migrations from root migrations map |
 | cronjob.flywayInitContainer.migrationPaths | string | `nil` | List of comma separated paths to migration files or directories containing migration files (e.g. "/migrations/a_directory,v1_migration.sql,/migrations/b_directory") |
 | cronjob.flywayInitContainer.migrationsConfigmap | string | `nil` | Configmap with migrations |
 | cronjob.image | object | `{"digest":null,"imagePullPolicy":"Always","repositoryName":null,"repositoryPrefix":null,"tag":null}` | Cronjob image configuration |
@@ -75,6 +76,7 @@ The following table lists the configurable parameters of the Interop-eks-cronjob
 | externalSecrets.flywayInitContainer.targetSecret.creationPolicy | string | `"Merge"` | Creation policy: Owner, Orphan, Merge, None |
 | externalSecrets.flywayInitContainer.targetSecret.deletionPolicy | string | `"Retain"` | Deletion policy: Retain, Delete |
 | externalSecrets.flywayInitContainer.targetSecret.name | string | `""` | Name of the target secret (defaults to cronjob name with -flyway suffix) |
+| migrations | object | `{}` | Catalog of Flyway migrations keyed by migration domain. The selected key must match cronjob.flywayInitContainer.migrationDomain. |
 | name | string | `nil` | Name of the service that will be deployed on K8s cluster |
 | namespace | string | `nil` | Namespace hosting the service that will be deployed on K8s cluster |
 | serviceAccount.roleArn | string | `nil` | Optional IAM Role ARN for ServiceAccount annotation eks.amazonaws.com/role-arn (supports templating) |
@@ -313,7 +315,7 @@ You can control which Flyway commands are executed via the `executeFlywayMigrate
 
 ### 2.3 Migration Paths
 
-There are two mutually exclusive ways to provide SQL migration files:
+There are three mutually exclusive ways to provide SQL migration files:
 
 #### 2.3.1 migrationPaths
 
@@ -337,7 +339,27 @@ cronjob:
     migrationsConfigmap: "my-migrations-configmap"
 ```
 
-> **Note:** `migrationPaths` and `migrationsConfigmap` cannot be defined at the same time.
+#### 2.3.3 migrationDomain
+
+Selects a domain from the root-level `migrations` catalog. The chart creates a ConfigMap named after the selected domain in the configured namespace and mounts it at `/flyway/sql`:
+
+```yaml
+cronjob:
+  flywayInitContainer:
+    create: true
+    migrationDomain: agreement-domain
+
+migrations:
+  agreement-domain:
+    V1__Init.sql: |-
+      CREATE TABLE IF NOT EXISTS public.agreement(id UUID PRIMARY KEY);
+    V2__Patch.sql: |-
+      ALTER TABLE public.agreement ADD COLUMN created_at TIMESTAMP;
+```
+
+Only the selected domain is rendered; other domains in the catalog are ignored. SQL contents are used literally, without evaluating Helm templates. The selected domain must exist in `migrations`, otherwise rendering fails. No migrations ConfigMap is generated when Flyway is disabled or no domain is selected.
+
+> **Note:** `migrationDomain`, `migrationPaths` and `migrationsConfigmap` cannot be used together. As in the microservice chart, the schema rejects non-empty `migrationDomain` and `migrationsConfigmap` together even when Flyway is disabled.
 
 ### 2.4 Resources
 
