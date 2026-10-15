@@ -5,6 +5,32 @@ values:
   - ../common/base.yaml
 
 tests:
+  - it: fails when migrationDomain and migrationPaths are both configured
+    values:
+      - flyway_migrationdomain_catalog.yaml
+    set:
+      cronjob.flywayInitContainer.migrationPaths: /migrations
+    asserts:
+      - failedTemplate:
+          errorMessage: "Invalid configuration: migrationDomain and migrationPaths in flywayInitContainer cannot be defined at the same time."
+
+  - it: fails when the selected domain is absent from the catalog
+    values:
+      - flyway_migrationdomain_catalog.yaml
+    set:
+      cronjob.flywayInitContainer.migrationDomain: missing-domain
+    asserts:
+      - failedTemplate:
+          errorMessage: "Invalid configuration: cronjob.flywayInitContainer.migrationDomain 'missing-domain' not found in root migrations map."
+
+  - it: fails when a domain is selected without a migrations catalog
+    set:
+      cronjob.flywayInitContainer.create: true
+      cronjob.flywayInitContainer.migrationDomain: domain-a
+    asserts:
+      - failedTemplate:
+          errorMessage: "Invalid configuration: cronjob.flywayInitContainer.migrationDomain 'domain-a' not found in root migrations map."
+
   - it: fails when both migrationsConfigmap and migrationPaths are configured
     values:
       - flyway_fail_migrationpaths_and_configmap.yaml
