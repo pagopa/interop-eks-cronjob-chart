@@ -360,8 +360,11 @@ externalSecrets:
 
 ### 4.2 Refresh and Target Secret Policies
 
-- `refreshPolicy`: `OnChange` (default) or `Interval`
-- `refreshInterval`: duration string (default `"0"`)
+- `refreshPolicy`: `OnChange` (default), `Periodic` or `CreatedOnce`
+  - `OnChange`: sync on creation and whenever the ExternalSecret manifest changes
+  - `Periodic`: sync every `refreshInterval`; `"0"` disables periodic refresh, so set a non-zero value
+  - `CreatedOnce`: sync only once, when the ExternalSecret is created
+- `refreshInterval`: duration string (default `"0"`), used only with `refreshPolicy: Periodic`
 - `targetSecret.creationPolicy`: `Owner`, `Orphan`, `Merge`, `None` (default `Merge`)
 - `targetSecret.deletionPolicy`: `Retain`, `Delete` (default `Retain`)
 
@@ -371,7 +374,7 @@ Example:
 externalSecrets:
   app:
     create: true
-    refreshPolicy: Interval
+    refreshPolicy: Periodic
     refreshInterval: 1h
     secretStoreRef:
       name: my-secret-store
@@ -382,7 +385,7 @@ externalSecrets:
       deletionPolicy: Retain
   flywayInitContainer:
     create: true
-    refreshPolicy: Interval
+    refreshPolicy: Periodic
     refreshInterval: 1h
     secretStoreRef:
       name: my-secret-store
