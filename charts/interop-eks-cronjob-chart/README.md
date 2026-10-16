@@ -59,8 +59,8 @@ The following table lists the configurable parameters of the Interop-eks-cronjob
 | cronjob.timeZone | string | `nil` | [Time zone](https://kubernetes.io/docs/concepts/workloads/controllers/cron-jobs/#time-zones) to use when calculating schedule |
 | externalSecrets.app.create | bool | `false` | Enable ExternalSecret creation |
 | externalSecrets.app.data | list | `[]` | List of individual secret keys to sync from external secret manager. When externalSecrets.app.create is true, each secretKey is automatically injected as an env var in the CronJob, referencing externalSecrets.app.targetSecret.name (defaults to the service name). This is the ExternalSecret equivalent of the top-level "configmap" field. |
-| externalSecrets.app.refreshInterval | string | `"0"` | Refresh interval for the secret (e.g., "1h", "30m") |
-| externalSecrets.app.refreshPolicy | string | `"OnChange"` | Refresh policy for the secret, allowed values: [ "OnChange", "Interval" ] |
+| externalSecrets.app.refreshInterval | string | `"0"` | Refresh interval for the secret (e.g., "1h", "30m"), used only when `refreshPolicy` is `Periodic` |
+| externalSecrets.app.refreshPolicy | string | `"OnChange"` | Refresh policy for the secret, allowed values: [ "CreatedOnce", "Periodic", "OnChange" ]. `refreshInterval` is only honoured with `Periodic` |
 | externalSecrets.app.secretStoreRef | object | `{"kind":"SecretStore","name":""}` | Reference to SecretStore or ClusterSecretStore |
 | externalSecrets.app.targetSecret | object | `{"creationPolicy":"Merge","deletionPolicy":"Retain","name":""}` | Target Kubernetes Secret configuration |
 | externalSecrets.app.targetSecret.creationPolicy | string | `"Merge"` | Creation policy: Owner, Orphan, Merge, None |
@@ -68,8 +68,8 @@ The following table lists the configurable parameters of the Interop-eks-cronjob
 | externalSecrets.app.targetSecret.name | string | `""` | Name of the target secret (defaults to cronjob name) |
 | externalSecrets.flywayInitContainer.create | bool | `false` | Enable ExternalSecret creation |
 | externalSecrets.flywayInitContainer.data | list | `[]` | List of individual secret keys to sync from external secret manager. When externalSecrets.flywayInitContainer.create is true, each secretKey is automatically injected as an env var in the CronJob, referencing externalSecrets.flywayInitContainer.targetSecret.name (defaults to the service name). This is the ExternalSecret equivalent of the top-level "configmap" field. |
-| externalSecrets.flywayInitContainer.refreshInterval | string | `"0"` | Refresh interval for the secret (e.g., "1h", "30m") |
-| externalSecrets.flywayInitContainer.refreshPolicy | string | `"OnChange"` | Refresh policy for the secret, allowed values: [ "OnChange", "Interval" ] |
+| externalSecrets.flywayInitContainer.refreshInterval | string | `"0"` | Refresh interval for the secret (e.g., "1h", "30m"), used only when `refreshPolicy` is `Periodic` |
+| externalSecrets.flywayInitContainer.refreshPolicy | string | `"OnChange"` | Refresh policy for the secret, allowed values: [ "CreatedOnce", "Periodic", "OnChange" ]. `refreshInterval` is only honoured with `Periodic` |
 | externalSecrets.flywayInitContainer.secretStoreRef | object | `{"kind":"SecretStore","name":""}` | Reference to SecretStore or ClusterSecretStore |
 | externalSecrets.flywayInitContainer.targetSecret | object | `{"creationPolicy":"Merge","deletionPolicy":"Retain","name":""}` | Target Kubernetes Secret configuration |
 | externalSecrets.flywayInitContainer.targetSecret.creationPolicy | string | `"Merge"` | Creation policy: Owner, Orphan, Merge, None |
@@ -424,8 +424,11 @@ externalSecrets:
 
 ### 4.2 Refresh and Target Secret Policies
 
-- `refreshPolicy`: `OnChange` (default) or `Interval`
-- `refreshInterval`: duration string (default `"0"`)
+- `refreshPolicy`: `OnChange` (default), `Periodic` or `CreatedOnce`
+  - `OnChange`: sync on creation and whenever the ExternalSecret manifest changes
+  - `Periodic`: sync every `refreshInterval`; `"0"` disables periodic refresh, so set a non-zero value
+  - `CreatedOnce`: sync only once, when the ExternalSecret is created
+- `refreshInterval`: duration string (default `"0"`), used only with `refreshPolicy: Periodic`
 - `targetSecret.creationPolicy`: `Owner`, `Orphan`, `Merge`, `None` (default `Merge`)
 - `targetSecret.deletionPolicy`: `Retain`, `Delete` (default `Retain`)
 
@@ -435,7 +438,7 @@ Example:
 externalSecrets:
   app:
     create: true
-    refreshPolicy: Interval
+    refreshPolicy: Periodic
     refreshInterval: 1h
     secretStoreRef:
       name: my-secret-store
@@ -446,7 +449,7 @@ externalSecrets:
       deletionPolicy: Retain
   flywayInitContainer:
     create: true
-    refreshPolicy: Interval
+    refreshPolicy: Periodic
     refreshInterval: 1h
     secretStoreRef:
       name: my-secret-store
