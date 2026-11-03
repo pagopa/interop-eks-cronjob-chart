@@ -345,6 +345,11 @@
                   "tfStateBucketKeyPrefix": {
                     "type": "string",
                     "minLength": 1
+                  },
+                  "tfPlanOnly": {
+                    "description": "Only run `terraform plan` without applying changes",
+                    "type": "boolean",
+                    "default": false
                   }
                 }
               }
