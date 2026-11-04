@@ -17,6 +17,7 @@ The following table lists the configurable parameters of the Interop-eks-cronjob
 | argocd.appMonitoring.projectRepositoryURL | string | `nil` | URL of the GitHub repository containing the 'terraform/k8s-monitoring-argocd-application' Terraform state |
 | argocd.appMonitoring.serviceAccountName | string | `nil` | Name of the ServiceAccount with the IRSA annotation granting the Job the permission to manage AWS monitoring resources |
 | argocd.appMonitoring.tfEnv | string | `nil` | Terraform environment to use for managing monitoring resources |
+| argocd.appMonitoring.tfPlanOnly | bool | `false` | Only run `terraform plan` without applying changes |
 | argocd.appMonitoring.tfStateBucketKeyPrefix | string | `nil` | Bucket key prefix storing the Terraform state file |
 | argocd.appMonitoring.workloadKind | string | `"Cronjob"` | Kind of workload to monitor |
 | cronjob.activeDeadlineSeconds | int | 3600 | The activeDeadlineSeconds applies to the duration of the job, no matter how many Pods are created. Once a Job reaches activeDeadlineSeconds, all of its running Pods are terminated. |
