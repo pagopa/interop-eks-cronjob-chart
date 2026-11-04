@@ -1,0 +1,21 @@
+{{- $flywayEnabled := and .Values.cronjob .Values.cronjob.flywayInitContainer .Values.cronjob.flywayInitContainer.create -}}
+{{- $migrationDomain := "" -}}
+{{- if and $flywayEnabled .Values.cronjob.flywayInitContainer.migrationDomain -}}
+{{- $migrationDomain = .Values.cronjob.flywayInitContainer.migrationDomain -}}
+{{- end -}}
+{{- $migrationsRoot := .Values.migrations | default dict -}}
+{{- if and $migrationDomain (not (hasKey $migrationsRoot $migrationDomain)) -}}
+{{ fail (printf "Invalid configuration: cronjob.flywayInitContainer.migrationDomain '%s' not found in root migrations map." $migrationDomain) }}
+{{- end -}}
+{{- if and $flywayEnabled $migrationDomain -}}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ $migrationDomain }}
+  namespace: {{ .Values.namespace }}
+data:
+  {{- range $key, $val := index $migrationsRoot $migrationDomain }}
+  {{ $key }}: |-
+{{ $val | indent 4 }}
+  {{- end }}
+{{- end }}

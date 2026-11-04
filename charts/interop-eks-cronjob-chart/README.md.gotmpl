@@ -249,7 +249,7 @@ You can control which Flyway commands are executed via the `executeFlywayMigrate
 
 ### 2.3 Migration Paths
 
-There are two mutually exclusive ways to provide SQL migration files:
+There are three mutually exclusive ways to provide SQL migration files:
 
 #### 2.3.1 migrationPaths
 
@@ -273,7 +273,27 @@ cronjob:
     migrationsConfigmap: "my-migrations-configmap"
 ```
 
-> **Note:** `migrationPaths` and `migrationsConfigmap` cannot be defined at the same time.
+#### 2.3.3 migrationDomain
+
+Selects a domain from the root-level `migrations` catalog. The chart creates a ConfigMap named after the selected domain in the configured namespace and mounts it at `/flyway/sql`:
+
+```yaml
+cronjob:
+  flywayInitContainer:
+    create: true
+    migrationDomain: agreement-domain
+
+migrations:
+  agreement-domain:
+    V1__Init.sql: |-
+      CREATE TABLE IF NOT EXISTS public.agreement(id UUID PRIMARY KEY);
+    V2__Patch.sql: |-
+      ALTER TABLE public.agreement ADD COLUMN created_at TIMESTAMP;
+```
+
+Only the selected domain is rendered; other domains in the catalog are ignored. SQL contents are used literally, without evaluating Helm templates. The selected domain must exist in `migrations`, otherwise rendering fails. No migrations ConfigMap is generated when Flyway is disabled or no domain is selected.
+
+> **Note:** `migrationDomain`, `migrationPaths` and `migrationsConfigmap` cannot be used together. As in the microservice chart, the schema rejects non-empty `migrationDomain` and `migrationsConfigmap` together even when Flyway is disabled.
 
 ### 2.4 Resources
 

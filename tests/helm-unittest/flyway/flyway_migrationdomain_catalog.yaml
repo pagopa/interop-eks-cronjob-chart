@@ -1,0 +1,14 @@
+cronjob:
+  flywayInitContainer:
+    create: true
+    migrationDomain: domain-a
+
+migrations:
+  domain-a:
+    V1__Init.sql: |-
+      CREATE TABLE IF NOT EXISTS public.sample_table(id INT PRIMARY KEY);
+    V2__Alter.sql: |-
+      ALTER TABLE public.sample_table ADD COLUMN description TEXT;
+  domain-b:
+    V1__Other.sql: |-
+      CREATE TABLE other_table(id INT PRIMARY KEY);
