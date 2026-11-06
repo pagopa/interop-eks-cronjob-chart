@@ -38,6 +38,9 @@ tests:
       - isKind:
           of: Job
       - equal:
+          path: metadata.name
+          value: test-cronjob-dev-argocd-deploy
+      - equal:
           path: metadata.annotations["argocd.argoproj.io/hook"]
           value: PostSync
       - equal:
