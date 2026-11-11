@@ -67,6 +67,10 @@ Create the name of the service account to use
 {{- end }}
 {{- end }}
 
+{{- define "interop-eks-cronjob-chart.flywayConfigmapName" -}}
+{{- printf "%s-flyway-%s" .Values.name .Values.cronjob.flywayInitContainer.migrationDomain -}}
+{{- end -}}
+
 {{- define "interop-eks-cronjob-chart.check-tpl-value" -}}
   {{- $givenValue := typeIs "string" .value | ternary .value (.value | toYaml) }}
   {{- $givenContext := .context }}
