@@ -1,0 +1,263 @@
+suite: flyway configmap
+templates:
+  - templates/configmap.flyway.yaml
+  - templates/cronjob.yaml
+values:
+  - ../common/base.yaml
+  - flyway_migrationdomain_catalog.yaml
+
+tests:
+  - it: does not duplicate the Flyway prefix in the generated ConfigMap name
+    template: templates/configmap.flyway.yaml
+    set:
+      cronjob.flywayInitContainer.migrationDomain: flyway-digest-tracking
+      migrations.flyway-digest-tracking:
+        V1__Init.sql: SELECT 1;
+    asserts:
+      - equal:
+          path: metadata.name
+          value: test-cronjob-flyway-digest-tracking
+
+  - it: mounts the ConfigMap without duplicating the Flyway prefix
+    template: templates/cronjob.yaml
+    set:
+      cronjob.flywayInitContainer.migrationDomain: flyway-digest-tracking
+      migrations.flyway-digest-tracking:
+        V1__Init.sql: SELECT 1;
+    asserts:
+      - equal:
+          path: spec.jobTemplate.spec.template.spec.volumes[0].projected.sources[0].configMap.name
+          value: test-cronjob-flyway-digest-tracking
+
+  - it: adds the Flyway prefix to a domain without it
+    template: templates/configmap.flyway.yaml
+    set:
+      cronjob.flywayInitContainer.migrationDomain: event-store-migrations
+      migrations.event-store-migrations:
+        V1__Init.sql: SELECT 1;
+    asserts:
+      - equal:
+          path: metadata.name
+          value: test-cronjob-flyway-event-store-migrations
+
+  - it: mounts the ConfigMap with the added Flyway prefix
+    template: templates/cronjob.yaml
+    set:
+      cronjob.flywayInitContainer.migrationDomain: event-store-migrations
+      migrations.event-store-migrations:
+        V1__Init.sql: SELECT 1;
+    asserts:
+      - equal:
+          path: spec.jobTemplate.spec.template.spec.volumes[0].projected.sources[0].configMap.name
+          value: test-cronjob-flyway-event-store-migrations
+
+  - it: adds the Flyway prefix when flyway occurs only inside the domain
+    template: templates/configmap.flyway.yaml
+    set:
+      cronjob.flywayInitContainer.migrationDomain: digest-flyway-tracking
+      migrations.digest-flyway-tracking:
+        V1__Init.sql: SELECT 1;
+    asserts:
+      - equal:
+          path: metadata.name
+          value: test-cronjob-flyway-digest-flyway-tracking
+
+  - it: mounts the prefixed ConfigMap when flyway occurs only inside the domain
+    template: templates/cronjob.yaml
+    set:
+      cronjob.flywayInitContainer.migrationDomain: digest-flyway-tracking
+      migrations.digest-flyway-tracking:
+        V1__Init.sql: SELECT 1;
+    asserts:
+      - equal:
+          path: spec.jobTemplate.spec.template.spec.volumes[0].projected.sources[0].configMap.name
+          value: test-cronjob-flyway-digest-flyway-tracking
+
+  - it: renders only the selected domain with literal SQL contents
+    template: templates/configmap.flyway.yaml
+    asserts:
+      - isKind:
+          of: ConfigMap
+      - equal:
+          path: metadata.name
+          value: test-cronjob-flyway-domain-a
+      - equal:
+          path: metadata.namespace
+          value: test-namespace
+      - equal:
+          path: data
+          value:
+            V1__Init.sql: CREATE TABLE IF NOT EXISTS public.sample_table(id INT PRIMARY KEY);
+            V2__Alter.sql: ALTER TABLE public.sample_table ADD COLUMN description TEXT;
+
+  - it: mounts the generated ConfigMap at the default Flyway location
+    template: templates/cronjob.yaml
+    asserts:
+      - equal:
+          path: spec.jobTemplate.spec.template.spec.initContainers[0].volumeMounts
+          value:
+            - name: migrations-files
+              mountPath: /flyway/sql
+      - equal:
+          path: spec.jobTemplate.spec.template.spec.volumes[0].projected.sources[0].configMap.name
+          value: test-cronjob-flyway-domain-a
+      - notContains:
+          path: spec.jobTemplate.spec.template.spec.initContainers[0].env
+          content:
+            name: INTERNAL_FLYWAY_MIGRATIONS_PATHS
+          any: true
+      - contains:
+          path: spec.jobTemplate.spec.template.spec.initContainers[0].env
+          content:
+            name: INTERNAL_FLYWAY_ACTION
+            value: migrate
+
+  - it: switches to another domain without including unselected migrations
+    template: templates/configmap.flyway.yaml
+    set:
+      cronjob.flywayInitContainer.migrationDomain: domain-b
+    asserts:
+      - equal:
+          path: metadata.name
+          value: test-cronjob-flyway-domain-b
+      - equal:
+          path: data
+          value:
+            V1__Other.sql: CREATE TABLE other_table(id INT PRIMARY KEY);
+
+  - it: mounts the same domain selected for ConfigMap generation
+    template: templates/cronjob.yaml
+    set:
+      cronjob.flywayInitContainer.migrationDomain: domain-b
+    asserts:
+      - equal:
+          path: spec.jobTemplate.spec.template.spec.volumes[0].projected.sources[0].configMap.name
+          value: test-cronjob-flyway-domain-b
+
+  - it: isolates ConfigMaps for cronjobs sharing a migration domain
+    template: templates/configmap.flyway.yaml
+    set:
+      name: another-cronjob
+    asserts:
+      - equal:
+          path: metadata.name
+          value: another-cronjob-flyway-domain-a
+      - equal:
+          path: data["V1__Init.sql"]
+          value: CREATE TABLE IF NOT EXISTS public.sample_table(id INT PRIMARY KEY);
+
+  - it: mounts the application-prefixed ConfigMap for a shared migration domain
+    template: templates/cronjob.yaml
+    set:
+      name: another-cronjob
+    asserts:
+      - equal:
+          path: metadata.name
+          value: another-cronjob
+      - equal:
+          path: spec.jobTemplate.spec.template.spec.volumes[0].projected.sources[0].configMap.name
+          value: another-cronjob-flyway-domain-a
+
+  - it: preserves multiline SQL and placeholders without evaluating templates
+    template: templates/configmap.flyway.yaml
+    set:
+      migrations.domain-a:
+        V1__Init.sql: |-
+          CREATE SCHEMA "${NAMESPACE}_tracking";
+          SELECT '{{ .Values.name }}';
+    asserts:
+      - equal:
+          path: data["V1__Init.sql"]
+          value: |-
+            CREATE SCHEMA "${NAMESPACE}_tracking";
+            SELECT '{{ .Values.name }}';
+
+  - it: does not generate a ConfigMap when Flyway is disabled
+    template: templates/configmap.flyway.yaml
+    set:
+      cronjob.flywayInitContainer.create: false
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: ignores a missing domain when Flyway is disabled
+    template: templates/configmap.flyway.yaml
+    set:
+      cronjob.flywayInitContainer.create: false
+      cronjob.flywayInitContainer.migrationDomain: missing-domain
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: omits the init container and migration volume when Flyway is disabled
+    template: templates/cronjob.yaml
+    set:
+      cronjob.flywayInitContainer.create: false
+    asserts:
+      - notExists:
+          path: spec.jobTemplate.spec.template.spec.initContainers
+      - notExists:
+          path: spec.jobTemplate.spec.template.spec.volumes
+
+  - it: does not generate a ConfigMap when no domain is selected
+    template: templates/configmap.flyway.yaml
+    set:
+      cronjob.flywayInitContainer.migrationDomain: null
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: uses an existing ConfigMap without generating one
+    template: templates/configmap.flyway.yaml
+    set:
+      cronjob.flywayInitContainer.migrationDomain: null
+      cronjob.flywayInitContainer.migrationsConfigmap: existing-migrations
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: mounts an existing ConfigMap as before
+    template: templates/cronjob.yaml
+    set:
+      cronjob.flywayInitContainer.migrationDomain: null
+      cronjob.flywayInitContainer.migrationsConfigmap: existing-migrations
+    asserts:
+      - equal:
+          path: spec.jobTemplate.spec.template.spec.volumes[0].projected.sources[0].configMap.name
+          value: existing-migrations
+      - equal:
+          path: spec.jobTemplate.spec.template.spec.initContainers[0].volumeMounts[0].mountPath
+          value: /flyway/sql
+
+  - it: does not generate a ConfigMap for image migration paths
+    template: templates/configmap.flyway.yaml
+    set:
+      cronjob.flywayInitContainer.migrationDomain: null
+      cronjob.flywayInitContainer.migrationPaths: /migrations
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: treats an empty domain as unselected
+    template: templates/configmap.flyway.yaml
+    set:
+      cronjob.flywayInitContainer.migrationDomain: ""
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: preserves custom volumes alongside the generated migrations volume
+    template: templates/cronjob.yaml
+    set:
+      cronjob.volumes:
+        - name: scratch
+          emptyDir: {}
+    asserts:
+      - equal:
+          path: spec.jobTemplate.spec.template.spec.volumes[0].projected.sources[0].configMap.name
+          value: test-cronjob-flyway-domain-a
+      - contains:
+          path: spec.jobTemplate.spec.template.spec.volumes
+          content:
+            name: scratch
+            emptyDir: {}

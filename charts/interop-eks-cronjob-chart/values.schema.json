@@ -55,6 +55,21 @@
           "description": "Optional Flyway init container configuration",
           "allOf": [
             {
+              "not": {
+                "required": ["migrationDomain", "migrationsConfigmap"],
+                "properties": {
+                  "migrationDomain": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "migrationsConfigmap": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                }
+              }
+            },
+            {
               "if": {
                 "properties": {
                   "create": { "const": true }
@@ -102,6 +117,10 @@
             }
           ],
           "properties": {
+            "migrationDomain": {
+              "description": "Domain key used to select migrations from root migrations map; mutually exclusive with migrationsConfigmap and migrationPaths",
+              "type": ["string", "null"]
+            },
             "create": {
               "description": "Enable the Flyway init container",
               "type": "boolean"
@@ -160,14 +179,14 @@
               "type": "boolean"
             },
             "migrationsConfigmap": {
-              "description": "Name of the ConfigMap containing migration files, mounted at /flyway/sql; mutually exclusive with migrationPaths",
+              "description": "Name of the ConfigMap containing migration files, mounted at /flyway/sql; mutually exclusive with migrationDomain and migrationPaths",
               "type": [
                 "string",
                 "null"
               ]
             },
             "migrationPaths": {
-              "description": "Comma-separated list of paths to migration files or directories; mutually exclusive with migrationsConfigmap",
+              "description": "Comma-separated list of paths to migration files or directories; mutually exclusive with migrationDomain and migrationsConfigmap",
               "type": [
                 "string",
                 "null"
@@ -273,6 +292,17 @@
         "resources",
         "schedule"
       ]
+    },
+    "migrations": {
+      "description": "Catalog of Flyway migrations keyed by migration domain. The selected key must match cronjob.flywayInitContainer.migrationDomain.",
+      "type": "object",
+      "default": {},
+      "additionalProperties": {
+        "type": "object",
+        "additionalProperties": {
+          "type": "string"
+        }
+      }
     },
     "configmap": {
       "description": "ConfigMap key/value entries used by deployment env injection",
