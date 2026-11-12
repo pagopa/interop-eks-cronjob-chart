@@ -7,6 +7,72 @@ values:
   - flyway_migrationdomain_catalog.yaml
 
 tests:
+  - it: does not duplicate the Flyway prefix in the generated ConfigMap name
+    template: templates/configmap.flyway.yaml
+    set:
+      cronjob.flywayInitContainer.migrationDomain: flyway-digest-tracking
+      migrations.flyway-digest-tracking:
+        V1__Init.sql: SELECT 1;
+    asserts:
+      - equal:
+          path: metadata.name
+          value: test-cronjob-flyway-digest-tracking
+
+  - it: mounts the ConfigMap without duplicating the Flyway prefix
+    template: templates/cronjob.yaml
+    set:
+      cronjob.flywayInitContainer.migrationDomain: flyway-digest-tracking
+      migrations.flyway-digest-tracking:
+        V1__Init.sql: SELECT 1;
+    asserts:
+      - equal:
+          path: spec.jobTemplate.spec.template.spec.volumes[0].projected.sources[0].configMap.name
+          value: test-cronjob-flyway-digest-tracking
+
+  - it: adds the Flyway prefix to a domain without it
+    template: templates/configmap.flyway.yaml
+    set:
+      cronjob.flywayInitContainer.migrationDomain: event-store-migrations
+      migrations.event-store-migrations:
+        V1__Init.sql: SELECT 1;
+    asserts:
+      - equal:
+          path: metadata.name
+          value: test-cronjob-flyway-event-store-migrations
+
+  - it: mounts the ConfigMap with the added Flyway prefix
+    template: templates/cronjob.yaml
+    set:
+      cronjob.flywayInitContainer.migrationDomain: event-store-migrations
+      migrations.event-store-migrations:
+        V1__Init.sql: SELECT 1;
+    asserts:
+      - equal:
+          path: spec.jobTemplate.spec.template.spec.volumes[0].projected.sources[0].configMap.name
+          value: test-cronjob-flyway-event-store-migrations
+
+  - it: adds the Flyway prefix when flyway occurs only inside the domain
+    template: templates/configmap.flyway.yaml
+    set:
+      cronjob.flywayInitContainer.migrationDomain: digest-flyway-tracking
+      migrations.digest-flyway-tracking:
+        V1__Init.sql: SELECT 1;
+    asserts:
+      - equal:
+          path: metadata.name
+          value: test-cronjob-flyway-digest-flyway-tracking
+
+  - it: mounts the prefixed ConfigMap when flyway occurs only inside the domain
+    template: templates/cronjob.yaml
+    set:
+      cronjob.flywayInitContainer.migrationDomain: digest-flyway-tracking
+      migrations.digest-flyway-tracking:
+        V1__Init.sql: SELECT 1;
+    asserts:
+      - equal:
+          path: spec.jobTemplate.spec.template.spec.volumes[0].projected.sources[0].configMap.name
+          value: test-cronjob-flyway-digest-flyway-tracking
+
   - it: renders only the selected domain with literal SQL contents
     template: templates/configmap.flyway.yaml
     asserts:

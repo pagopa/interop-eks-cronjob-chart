@@ -275,7 +275,7 @@ cronjob:
 
 #### 2.3.3 migrationDomain
 
-Selects a domain from the root-level `migrations` catalog. The chart creates a ConfigMap named `<name>-flyway-<migrationDomain>`, where `<name>` is the CronJob name (`values.name`), in the configured namespace and mounts it at `/flyway/sql`. CronJobs sharing a migration domain must have distinct names within the namespace:
+Selects a domain from the root-level `migrations` catalog. The chart creates a ConfigMap named `<name>-flyway-<migrationDomain>`, where `<name>` is the CronJob name (`values.name`), in the configured namespace and mounts it at `/flyway/sql`. If `migrationDomain` starts with `flyway`, the name is `<name>-<migrationDomain>` instead, avoiding a duplicate prefix. Domains containing `flyway` elsewhere still receive the prefix. CronJobs sharing a migration domain must have distinct names within the namespace:
 
 ```yaml
 cronjob:
