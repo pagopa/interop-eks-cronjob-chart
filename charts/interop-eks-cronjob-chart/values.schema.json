@@ -289,8 +289,7 @@
         }
       },
       "required": [
-        "resources",
-        "schedule"
+        "resources"
       ]
     },
     "migrations": {
@@ -301,6 +300,184 @@
         "type": "object",
         "additionalProperties": {
           "type": "string"
+        }
+      }
+    },
+    "scaledJob": {
+      "description": "KEDA ScaledJob, rendered instead of the CronJob when create is true; it runs the Job configured under cronjob",
+      "type": "object",
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "comment": "When create:true, triggers is required and must be non-empty; a missing or null create counts as false.",
+          "if": {
+            "required": [
+              "create"
+            ],
+            "properties": {
+              "create": {
+                "const": true
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "triggers"
+            ],
+            "properties": {
+              "triggers": {
+                "minItems": 1
+              }
+            }
+          }
+        }
+      ],
+      "properties": {
+        "create": {
+          "description": "Render a KEDA ScaledJob instead of the CronJob",
+          "type": "boolean",
+          "default": false
+        },
+        "paused": {
+          "description": "Pause the ScaledJob with the autoscaling.keda.sh/paused annotation",
+          "type": "boolean",
+          "default": false
+        },
+        "pollingInterval": {
+          "description": "Seconds between trigger checks",
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 1
+        },
+        "minReplicaCount": {
+          "description": "Minimum number of Jobs kept running",
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "maxReplicaCount": {
+          "description": "Maximum number of Jobs running at once",
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 1
+        },
+        "scalingStrategy": {
+          "description": "KEDA scalingStrategy",
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "strategy": {
+              "type": "string",
+              "enum": [
+                "default",
+                "custom",
+                "accurate",
+                "eager"
+              ]
+            },
+            "customScalingQueueLengthDeduction": {
+              "type": "integer"
+            },
+            "customScalingRunningJobPercentage": {
+              "type": "string"
+            },
+            "pendingPodConditions": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "multipleScalersCalculation": {
+              "type": "string",
+              "enum": [
+                "min",
+                "avg",
+                "sum",
+                "max"
+              ]
+            }
+          }
+        },
+        "rollout": {
+          "description": "What happens to running Jobs when the ScaledJob changes",
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "strategy": {
+              "type": "string",
+              "enum": [
+                "gradual",
+                "immediate"
+              ]
+            },
+            "propagationPolicy": {
+              "type": "string",
+              "enum": [
+                "foreground",
+                "background"
+              ]
+            }
+          }
+        },
+        "triggers": {
+          "description": "KEDA triggers",
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "type",
+              "metadata"
+            ],
+            "properties": {
+              "type": {
+                "description": "Scaler type, e.g. aws-sqs-queue",
+                "type": "string",
+                "minLength": 1
+              },
+              "name": {
+                "type": "string",
+                "minLength": 1
+              },
+              "metadata": {
+                "description": "Scaler metadata; KEDA requires string values",
+                "type": "object",
+                "additionalProperties": {
+                  "type": "string"
+                }
+              },
+              "authenticationRef": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "name"
+                ],
+                "properties": {
+                  "name": {
+                    "description": "TriggerAuthentication or ClusterTriggerAuthentication name",
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "kind": {
+                    "type": "string",
+                    "enum": [
+                      "TriggerAuthentication",
+                      "ClusterTriggerAuthentication"
+                    ]
+                  }
+                }
+              },
+              "useCachedMetrics": {
+                "type": "boolean"
+              }
+            }
+          }
         }
       }
     },
@@ -687,6 +864,52 @@
       "additionalProperties": false
     }
   },
+  "allOf": [
+    {
+      "comment": "A ScaledJob doesn't need a schedule, and its Jobs need restartPolicy Never or OnFailure; the CronJob still requires a schedule.",
+      "if": {
+        "required": [
+          "scaledJob"
+        ],
+        "properties": {
+          "scaledJob": {
+            "required": [
+              "create"
+            ],
+            "properties": {
+              "create": {
+                "const": true
+              }
+            }
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "cronjob": {
+            "properties": {
+              "restartPolicy": {
+                "type": "string",
+                "enum": [
+                  "Never",
+                  "OnFailure"
+                ]
+              }
+            }
+          }
+        }
+      },
+      "else": {
+        "properties": {
+          "cronjob": {
+            "required": [
+              "schedule"
+            ]
+          }
+        }
+      }
+    }
+  ],
   "required": [
     "name",
     "namespace"

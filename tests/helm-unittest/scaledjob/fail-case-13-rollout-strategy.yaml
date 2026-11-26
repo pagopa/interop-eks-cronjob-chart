@@ -1,0 +1,15 @@
+# KEDA 2.21 only accepts gradual and immediate
+cronjob:
+  schedule: ~
+  restartPolicy: Never
+scaledJob:
+  create: true
+  rollout:
+    strategy: default
+  triggers:
+    - type: aws-sqs-queue
+      authenticationRef:
+        name: keda-aws
+      metadata:
+        queueURL: https://sqs.eu-south-1.amazonaws.com/123456789012/runs.fifo
+        queueLength: "1"

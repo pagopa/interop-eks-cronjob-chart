@@ -1,0 +1,18 @@
+# Base values shared by the ScaledJob test cases.
+# The common base sets a CronJob schedule, which a ScaledJob rejects: null removes it.
+
+cronjob:
+  schedule: ~
+  restartPolicy: Never
+  backoffLimit: 0
+
+scaledJob:
+  create: true
+  triggers:
+    - type: aws-sqs-queue
+      authenticationRef:
+        name: keda-aws
+      metadata:
+        queueURL: https://sqs.eu-south-1.amazonaws.com/123456789012/runs.fifo
+        queueLength: "1"
+        awsRegion: eu-south-1

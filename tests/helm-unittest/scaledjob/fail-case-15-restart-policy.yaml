@@ -1,0 +1,13 @@
+# A Job only accepts Never or OnFailure
+cronjob:
+  schedule: ~
+  restartPolicy: Always
+scaledJob:
+  create: true
+  triggers:
+    - type: aws-sqs-queue
+      authenticationRef:
+        name: keda-aws
+      metadata:
+        queueURL: https://sqs.eu-south-1.amazonaws.com/123456789012/runs.fifo
+        queueLength: "1"

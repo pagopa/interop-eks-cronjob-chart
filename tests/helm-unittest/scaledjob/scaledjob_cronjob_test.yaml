@@ -1,0 +1,38 @@
+suite: scaledjob instead of cronjob
+templates:
+  - templates/cronjob.yaml
+  - templates/scaledjob.yaml
+values:
+  - ../common/base.yaml
+
+tests:
+  - it: renders the CronJob and no ScaledJob by default
+    asserts:
+      - hasDocuments:
+          count: 1
+        template: templates/cronjob.yaml
+      - hasDocuments:
+          count: 0
+        template: templates/scaledjob.yaml
+
+  - it: renders the ScaledJob and no CronJob when scaledJob.create is true
+    values:
+      - scaledjob-base.yaml
+    asserts:
+      - hasDocuments:
+          count: 0
+        template: templates/cronjob.yaml
+      - hasDocuments:
+          count: 1
+        template: templates/scaledjob.yaml
+
+  - it: treats a missing or null scaledJob.create as false
+    set:
+      scaledJob.create: null
+    asserts:
+      - hasDocuments:
+          count: 1
+        template: templates/cronjob.yaml
+      - hasDocuments:
+          count: 0
+        template: templates/scaledjob.yaml

@@ -517,3 +517,61 @@ envFrom:
 ```
 
 
+
+## 5. ScaledJob (KEDA)
+
+When `scaledJob.create` is `true`, the chart renders a KEDA [ScaledJob](https://keda.sh/docs/latest/reference/scaledjob-spec/) (`keda.sh/v1alpha1`) instead of the CronJob: KEDA starts Jobs when its triggers report work (e.g. messages in a queue), instead of on a schedule.
+
+The ScaledJob runs exactly the Job configured under `cronjob`: image, env, resources, `flywayInitContainer`, volumes, `restartPolicy`, `backoffLimit`, `activeDeadlineSeconds`, the ConfigMap and the External Secrets all work as for a CronJob. `cronjob.metadata.annotations` go on the ScaledJob.
+
+Example, one Job per message of an SQS queue:
+
+```
+# /jobs/harvesting-runner/dev/values.yaml
+
+cronjob:
+  # SQS redelivers a failed message: no Job retries
+  restartPolicy: Never
+  backoffLimit: 0
+
+scaledJob:
+  create: true
+  maxReplicaCount: 3
+  triggers:
+    - type: aws-sqs-queue
+      authenticationRef:
+        name: keda-aws
+      metadata:
+        queueURL: "https://sqs.eu-south-1.amazonaws.com/123456789012/runs.fifo"
+        queueLength: "1"
+        awsRegion: "eu-south-1"
+```
+
+### 5.1 Required and rejected values
+
+When `scaledJob.create` is `true`:
+- `triggers` is required, with at least one entry. Each must define `type` and `metadata`, whose values must be strings (KEDA rejects other types); `authenticationRef` (`name`, optional `kind`) and `name` are optional. Triggers are rendered as written, without templating.
+- `cronjob.restartPolicy` must be `Never` or `OnFailure`.
+- The CronJob-only `cronjob.schedule`, `cronjob.timeZone` and `cronjob.concurrencyPolicy` must not be set, and `cronjob.suspend` must be false (use `scaledJob.paused`): on a ScaledJob they would silently do nothing.
+- `argocd.appMonitoring` is not supported: the monitoring Terraform it runs (`terraform/k8s-monitoring-argocd-application` in `pagopa/interop-core-deployment`) only handles Deployments and CronJobs.
+
+### 5.2 Scaling and history
+
+- `pollingInterval`, `minReplicaCount` and `maxReplicaCount` are rendered only when set; otherwise KEDA's defaults apply (30 seconds, 0 and 100 Jobs).
+- `scalingStrategy` is rendered as written when set (e.g. `strategy: accurate`).
+- The history limits are `cronjob.successfulJobsHistoryLimit` and `cronjob.failedJobsHistoryLimit` (chart defaults 0 and 1), which replace KEDA's defaults of 100 Jobs each.
+- `paused: true` sets the `autoscaling.keda.sh/paused` annotation: KEDA stops starting new Jobs.
+
+### 5.3 Rollout
+
+`scaledJob.rollout` decides what happens to running Jobs when the ScaledJob changes, e.g. on a new image. The chart default `strategy: gradual` lets them finish. KEDA's own default, `strategy: immediate`, deletes them, interrupting work in progress; `propagationPolicy` (`foreground`, `background`) sets how. `strategy: default` is rejected: KEDA 2.21 only accepts `gradual` and `immediate`.
+
+### 5.4 Image updates
+
+Keel doesn't manage ScaledJobs. Every Job KEDA starts pulls its image, so with a moving tag (e.g. `main`) and `imagePullPolicy: Always` each new Job runs the latest image without a change to the ScaledJob.
+
+### 5.5 How the ScaledJob is built
+
+`templates/scaledjob.yaml` doesn't template the Job a second time: it renders the CronJob from `templates/_cronjob.yaml`, reads it back and uses its Job spec (`spec.jobTemplate.spec`) as `spec.jobTargetRef`. `templates/cronjob.yaml` only renders `_cronjob.yaml` when `scaledJob.create` is false. This was chosen deliberately to add ScaledJob support without a larger refactoring of the CronJob template into shared named templates, while ScaledJob support was introduced in a time-constrained window; the ScaledJob therefore always runs the same Job as the CronJob would.
+
+The ScaledJob has been validated against the KEDA 2.17 and 2.21 CRDs.

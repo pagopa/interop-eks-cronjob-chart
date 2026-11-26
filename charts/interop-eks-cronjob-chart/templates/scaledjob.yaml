@@ -1,0 +1,75 @@
+{{- /*
+KEDA ScaledJob, rendered instead of the CronJob when scaledJob.create is true.
+
+It runs the same Job as the CronJob: the Job spec is read back from the rendered
+_cronjob.yaml (spec.jobTemplate.spec) instead of being templated a second time.
+This was chosen deliberately to add ScaledJob support without a larger refactoring
+of the CronJob template into shared named templates, while ScaledJob support was
+introduced in a time-constrained window.
+*/ -}}
+{{- $scaledJob := .Values.scaledJob | default dict }}
+{{- if $scaledJob.create }}
+
+{{- /* CronJob-only settings would silently do nothing on a ScaledJob */}}
+{{- range $key := list "schedule" "timeZone" "concurrencyPolicy" }}
+{{- if and (hasKey $.Values.cronjob $key) (not (kindIs "invalid" (index $.Values.cronjob $key))) }}
+{{- fail (printf "cronjob.%s only applies to CronJobs: remove it when scaledJob.create is true." $key) }}
+{{- end }}
+{{- end }}
+{{- if .Values.cronjob.suspend }}
+{{- fail "cronjob.suspend only applies to CronJobs: use scaledJob.paused when scaledJob.create is true." }}
+{{- end }}
+{{- if and .Values.argocd .Values.argocd.appMonitoring .Values.argocd.appMonitoring.enable }}
+{{- fail "argocd.appMonitoring is not supported with scaledJob.create: the monitoring Terraform it runs (terraform/k8s-monitoring-argocd-application in pagopa/interop-core-deployment) only handles Deployments and CronJobs." }}
+{{- end }}
+
+{{- $cronjob := include (print $.Template.BasePath "/_cronjob.yaml") . | fromYaml }}
+{{- if hasKey $cronjob "Error" }}
+{{- fail (printf "cannot read the Job spec from the rendered _cronjob.yaml: %s" $cronjob.Error) }}
+{{- end }}
+{{- $job := $cronjob.spec.jobTemplate.spec }}
+
+{{- /* Drop null container fields (e.g. an empty env), which the API server would prune anyway */}}
+{{- range $containers := list "initContainers" "containers" }}
+{{- $cleaned := list }}
+{{- range (get $job.template.spec $containers | default list) }}
+{{- $container := dict }}
+{{- range $key, $value := . }}
+{{- if not (kindIs "invalid" $value) }}
+{{- $_ := set $container $key $value }}
+{{- end }}
+{{- end }}
+{{- $cleaned = append $cleaned $container }}
+{{- end }}
+{{- if $cleaned }}
+{{- $_ := set $job.template.spec $containers $cleaned }}
+{{- end }}
+{{- end }}
+
+{{- /* History limits are the CronJob ones: the chart defaults replace KEDA's, which keep 100 Jobs of each */}}
+{{- $spec := dict "jobTargetRef" $job "successfulJobsHistoryLimit" $cronjob.spec.successfulJobsHistoryLimit "failedJobsHistoryLimit" $cronjob.spec.failedJobsHistoryLimit "triggers" $scaledJob.triggers }}
+{{- range $key := list "pollingInterval" "minReplicaCount" "maxReplicaCount" }}
+{{- if and (hasKey $scaledJob $key) (not (kindIs "invalid" (index $scaledJob $key))) }}
+{{- $_ := set $spec $key (index $scaledJob $key) }}
+{{- end }}
+{{- end }}
+{{- range $key := list "scalingStrategy" "rollout" }}
+{{- with (get $scaledJob $key) }}
+{{- $_ := set $spec $key . }}
+{{- end }}
+{{- end }}
+apiVersion: keda.sh/v1alpha1
+kind: ScaledJob
+metadata:
+  name: {{ .Values.name | quote }}
+  namespace: {{ .Values.namespace }}
+  labels:
+    {{- include "interop-eks-cronjob-chart.labels" . | nindent 4 }}
+  annotations:
+    autoscaling.keda.sh/paused: {{ $scaledJob.paused | default false | quote }}
+    {{- with $cronjob.metadata.annotations }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+spec:
+  {{- toYaml $spec | nindent 2 }}
+{{- end }}

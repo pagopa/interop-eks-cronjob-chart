@@ -1,0 +1,10 @@
+scaledJob:
+  paused: true
+  pollingInterval: 15
+  minReplicaCount: 0
+  maxReplicaCount: 3
+  scalingStrategy:
+    strategy: accurate
+  rollout:
+    strategy: immediate
+    propagationPolicy: foreground

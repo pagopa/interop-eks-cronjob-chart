@@ -1,0 +1,141 @@
+suite: scaledjob failures
+templates:
+  - templates/scaledjob.yaml
+values:
+  - ../common/base.yaml
+
+tests:
+  - it: fails when a CronJob schedule is set
+    values:
+      - fail-case-1-schedule.yaml
+    asserts:
+      - failedTemplate:
+          errorPattern: "cronjob.schedule only applies to CronJobs"
+
+  - it: fails when a CronJob time zone is set
+    values:
+      - fail-case-2-time-zone.yaml
+    asserts:
+      - failedTemplate:
+          errorPattern: "cronjob.timeZone only applies to CronJobs"
+
+  - it: fails when a CronJob concurrency policy is set
+    values:
+      - fail-case-3-concurrency-policy.yaml
+    asserts:
+      - failedTemplate:
+          errorPattern: "cronjob.concurrencyPolicy only applies to CronJobs"
+
+  - it: fails when the CronJob is suspended instead of the ScaledJob paused
+    values:
+      - fail-case-4-suspend.yaml
+    asserts:
+      - failedTemplate:
+          errorPattern: "cronjob.suspend only applies to CronJobs: use scaledJob.paused"
+
+  - it: fails when ArgoCD app monitoring is enabled
+    values:
+      - fail-case-5-app-monitoring.yaml
+    asserts:
+      - failedTemplate:
+          errorPattern: "argocd.appMonitoring is not supported with scaledJob.create"
+
+  - it: fails schema validation when triggers are missing
+    values:
+      - fail-case-6-missing-triggers.yaml
+    asserts:
+      - failedTemplate:
+          errorPattern: "triggers(: Array must have at least 1 items|.: minItems: got 0, want 1)"
+
+  - it: fails schema validation when triggers are empty
+    values:
+      - fail-case-7-empty-triggers.yaml
+    asserts:
+      - failedTemplate:
+          errorPattern: "triggers(: Array must have at least 1 items|.: minItems: got 0, want 1)"
+
+  - it: fails schema validation when triggers are set to null
+    values:
+      - fail-case-18-null-triggers.yaml
+    asserts:
+      - failedTemplate:
+          errorPattern: "(triggers is required|missing property .triggers.)"
+
+  - it: fails schema validation when a trigger has no type
+    values:
+      - fail-case-8-trigger-without-type.yaml
+    asserts:
+      - failedTemplate:
+          errorPattern: "triggers[./]0(: type is required|.: missing property .type.)"
+
+  - it: fails schema validation when a trigger has no metadata
+    values:
+      - fail-case-9-trigger-without-metadata.yaml
+    asserts:
+      - failedTemplate:
+          errorPattern: "triggers[./]0(: metadata is required|.: missing property .metadata.)"
+
+  - it: fails schema validation on non-string trigger metadata
+    values:
+      - fail-case-10-non-string-metadata.yaml
+    asserts:
+      - failedTemplate:
+          errorPattern: "queueLength(: Invalid type. Expected: string, given: integer|.: got number, want string)"
+
+  - it: fails schema validation when a trigger authentication reference has no name
+    values:
+      - fail-case-11-auth-ref-without-name.yaml
+    asserts:
+      - failedTemplate:
+          errorPattern: "authenticationRef(: name is required|.: missing property .name.)"
+
+  - it: fails schema validation on an unknown scaledJob key
+    values:
+      - fail-case-12-unknown-key.yaml
+    asserts:
+      - failedTemplate:
+          errorPattern: "(Additional property maxReplicas is not allowed|additional properties .maxReplicas. not allowed)"
+
+  - it: fails schema validation on a rollout strategy KEDA 2.21 rejects
+    values:
+      - fail-case-13-rollout-strategy.yaml
+    asserts:
+      - failedTemplate:
+          errorPattern: "rollout[./]strategy.*(must be one of the following: \"gradual\", \"immediate\"|value must be one of .gradual., .immediate.)"
+
+  - it: fails schema validation on an unknown scaling strategy
+    values:
+      - fail-case-14-scaling-strategy.yaml
+    asserts:
+      - failedTemplate:
+          errorPattern: "scalingStrategy[./]strategy.*must be one of"
+
+  - it: fails schema validation when the Job restart policy is Always
+    values:
+      - fail-case-15-restart-policy.yaml
+    asserts:
+      - failedTemplate:
+          errorPattern: "restartPolicy.*(must be one of the following: \"Never\", \"OnFailure\"|value must be one of .Never., .OnFailure.)"
+
+  - it: fails schema validation when maxReplicaCount is below 1
+    values:
+      - fail-case-16-max-replica-count.yaml
+    asserts:
+      - failedTemplate:
+          errorPattern: "maxReplicaCount(: Must be greater than or equal to 1|.: minimum: got 0, want 1)"
+
+  - it: fails schema validation when pollingInterval is below 1
+    values:
+      - fail-case-17-polling-interval.yaml
+    asserts:
+      - failedTemplate:
+          errorPattern: "pollingInterval(: Must be greater than or equal to 1|.: minimum: got 0, want 1)"
+
+  - it: still requires a schedule for a CronJob
+    templates:
+      - templates/cronjob.yaml
+    set:
+      cronjob.schedule: null
+    asserts:
+      - failedTemplate:
+          errorPattern: "(schedule is required|missing property .schedule.)"
