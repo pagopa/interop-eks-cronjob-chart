@@ -131,6 +131,41 @@ tests:
       - failedTemplate:
           errorPattern: "pollingInterval(: Must be greater than or equal to 1|.: minimum: got 0, want 1)"
 
+  - it: fails when cronjob.metadata.annotations pauses the ScaledJob
+    values:
+      - fail-case-19-paused-annotation.yaml
+    asserts:
+      - failedTemplate:
+          errorPattern: "cronjob.metadata.annotations must not set autoscaling.keda.sh/paused when scaledJob.create is true: use scaledJob.paused"
+
+  - it: fails when a templated trigger value with spaces in the braces renders empty
+    values:
+      - fail-case-20-unset-reference.yaml
+    asserts:
+      - failedTemplate:
+          errorPattern: "scaledJob.triggers\\[0\\].metadata.queueURL: \\{\\{ .Values.locals.empty \\}\\} renders empty"
+
+  - it: fails when a partly templated trigger value has a reference rendering empty
+    values:
+      - fail-case-21-partly-unset-reference.yaml
+    asserts:
+      - failedTemplate:
+          errorPattern: "scaledJob.triggers\\[0\\].metadata.queueURL: \\{\\{ .Values.locals.empty \\}\\} renders empty"
+
+  - it: fails when a templated trigger value with trim markers renders empty
+    values:
+      - fail-case-22-trimmed-unset-reference.yaml
+    asserts:
+      - failedTemplate:
+          errorPattern: "scaledJob.triggers\\[0\\].metadata.queueURL: \\{\\{- .Values.locals.empty -\\}\\} renders empty"
+
+  - it: fails when a templated trigger authentication name renders empty
+    values:
+      - fail-case-23-unset-authentication-ref.yaml
+    asserts:
+      - failedTemplate:
+          errorPattern: "scaledJob.triggers\\[0\\].authenticationRef.name: \\{\\{ .Values.locals.empty \\}\\} renders empty"
+
   - it: still requires a schedule for a CronJob
     templates:
       - templates/cronjob.yaml

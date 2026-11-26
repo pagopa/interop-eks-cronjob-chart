@@ -1,0 +1,14 @@
+# A trigger authentication name rendering empty fails
+locals:
+  empty: ""
+cronjob:
+  schedule: ~
+  restartPolicy: Never
+scaledJob:
+  create: true
+  triggers:
+    - type: aws-sqs-queue
+      authenticationRef:
+        name: "{{ .Values.locals.empty }}"
+      metadata:
+        queueLength: "1"

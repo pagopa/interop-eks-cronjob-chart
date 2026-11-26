@@ -1,0 +1,18 @@
+# Trigger metadata values and authenticationRef.name are templated one value at a time
+locals:
+  triggerAuthentication: keda-aws
+  account: "123456789012"
+  region: eu-south-1
+  special: "it's: a # b"
+scaledJob:
+  triggers:
+    - type: aws-sqs-queue
+      authenticationRef:
+        name: "{{ .Values.locals.triggerAuthentication }}"
+      metadata:
+        queueURL: "https://sqs.{{ .Values.locals.region }}.amazonaws.com/{{.Values.locals.account}}/{{ .Values.name }}.fifo"
+        queueLength: "1"
+        awsRegion: "{{- .Values.locals.region -}}"
+        special: "prefix-{{ .Values.locals.special }}"
+        fallback: '{{ .Values.locals.missing | default "fallback" }}'
+        braces: "plain value with {braces}"

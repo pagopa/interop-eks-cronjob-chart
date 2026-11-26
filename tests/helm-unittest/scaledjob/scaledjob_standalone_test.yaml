@@ -1,0 +1,20 @@
+suite: scaledjob without a cronjob schedule
+templates:
+  - templates/scaledjob.yaml
+  - templates/cronjob.yaml
+values:
+  - standalone.yaml
+
+tests:
+  - it: renders a ScaledJob from values that never set cronjob.schedule
+    asserts:
+      - hasDocuments:
+          count: 1
+        template: templates/scaledjob.yaml
+      - hasDocuments:
+          count: 0
+        template: templates/cronjob.yaml
+      - equal:
+          path: spec.jobTargetRef.template.spec.restartPolicy
+          value: Never
+        template: templates/scaledjob.yaml

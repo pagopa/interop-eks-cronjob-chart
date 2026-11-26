@@ -48,8 +48,11 @@
           "type": "object"
         },
         "schedule": {
-          "description": "Cronjob scheduling expression",
-          "type": "string"
+          "description": "Cronjob scheduling expression; required for a CronJob, not set for a ScaledJob",
+          "type": [
+            "string",
+            "null"
+          ]
         },
         "flywayInitContainer": {
           "description": "Optional Flyway init container configuration",
@@ -904,7 +907,12 @@
           "cronjob": {
             "required": [
               "schedule"
-            ]
+            ],
+            "properties": {
+              "schedule": {
+                "type": "string"
+              }
+            }
           }
         }
       }

@@ -1,0 +1,12 @@
+# Trim markers in the braces are checked too
+locals:
+  empty: ""
+cronjob:
+  schedule: ~
+  restartPolicy: Never
+scaledJob:
+  create: true
+  triggers:
+    - type: aws-sqs-queue
+      metadata:
+        queueURL: "{{- .Values.locals.empty -}}"

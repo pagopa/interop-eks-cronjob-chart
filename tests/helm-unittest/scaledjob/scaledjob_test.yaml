@@ -198,3 +198,37 @@ tests:
           value:
             strategy: immediate
             propagationPolicy: foreground
+
+  - it: renders templated trigger metadata values and authentication name one value at a time
+    values:
+      - templated-triggers.yaml
+    asserts:
+      - equal:
+          path: spec.triggers[0].authenticationRef.name
+          value: keda-aws
+      - equal:
+          path: spec.triggers[0].metadata
+          value:
+            queueURL: https://sqs.eu-south-1.amazonaws.com/123456789012/test-cronjob.fifo
+            queueLength: "1"
+            awsRegion: eu-south-1
+            special: "prefix-it's: a # b"
+            fallback: fallback
+            braces: plain value with {braces}
+      - equal:
+          path: spec.triggers[0].type
+          value: aws-sqs-queue
+
+  - it: leaves settings unset with ~ out, and accepts CronJob-only settings blanked with ""
+    values:
+      - unset-settings.yaml
+    asserts:
+      - notExists:
+          path: spec.jobTargetRef.activeDeadlineSeconds
+      - notExists:
+          path: spec.jobTargetRef.template.spec.automountServiceAccountToken
+      - notExists:
+          path: spec.successfulJobsHistoryLimit
+      - equal:
+          path: spec.failedJobsHistoryLimit
+          value: 1

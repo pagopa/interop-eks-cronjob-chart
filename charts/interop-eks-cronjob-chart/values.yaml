@@ -109,11 +109,14 @@ migrations: {}
 # -- KEDA [ScaledJob](https://keda.sh/docs/latest/reference/scaledjob-spec/), rendered instead of the CronJob when `scaledJob.create` is true.
 # It runs the Job configured under `cronjob` (image, env, resources, flywayInitContainer, volumes, restartPolicy, backoffLimit,
 # activeDeadlineSeconds, successfulJobsHistoryLimit, failedJobsHistoryLimit); the CronJob-only `schedule`, `timeZone`,
-# `concurrencyPolicy` and `suspend` must not be set. Values are rendered as written, without templating.
+# `concurrencyPolicy` and `suspend` must not be set. Warning: the Job inherits the CronJob defaults `restartPolicy: OnFailure`
+# and `backoffLimit: 6`; with a queue trigger, set `restartPolicy: Never` and `backoffLimit: 0`, or a failed message can be
+# retried in the Job while the queue redelivers it to another Job.
 scaledJob:
   # -- (bool) Render a KEDA ScaledJob instead of the CronJob
   create: false
-  # -- (bool) Pause the ScaledJob by setting the autoscaling.keda.sh/paused annotation; no new Jobs are created while paused
+  # -- (bool) Pause the ScaledJob by setting the autoscaling.keda.sh/paused annotation; no new Jobs are created while paused.
+  # cronjob.metadata.annotations must not set that annotation.
   paused: false
   # -- (int) Seconds between trigger checks; when unset, KEDA's default (30) applies
   pollingInterval:
@@ -128,8 +131,9 @@ scaledJob:
   # propagationPolicy (foreground, background) sets how `immediate` deletes them.
   rollout:
     strategy: gradual
-  # -- (list) KEDA [triggers](https://keda.sh/docs/latest/scalers/), rendered as-is; required when scaledJob.create is true.
+  # -- (list) KEDA [triggers](https://keda.sh/docs/latest/scalers/); required when scaledJob.create is true.
   # Each item must contain type and metadata (string values); authenticationRef (name, optional kind) and name are optional.
+  # metadata values and authenticationRef.name support templating, and every {{ .Values... }} reference in them must render non-empty.
   # Example:
   #   triggers:
   #     - type: aws-sqs-queue
