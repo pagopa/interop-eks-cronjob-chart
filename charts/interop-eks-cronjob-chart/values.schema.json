@@ -312,7 +312,7 @@
       "additionalProperties": false,
       "allOf": [
         {
-          "comment": "When create:true, triggers is required and must be non-empty; a missing or null create counts as false.",
+          "$comment": "When create:true, triggers is required and must be non-empty; a missing or null create counts as false.",
           "if": {
             "required": [
               "create"
@@ -869,7 +869,7 @@
   },
   "allOf": [
     {
-      "comment": "A ScaledJob doesn't need a schedule, and its Jobs need restartPolicy Never or OnFailure; the CronJob still requires a schedule.",
+      "$comment": "A ScaledJob doesn't need a schedule, and its Jobs need restartPolicy Never or OnFailure; the CronJob still requires a schedule.",
       "if": {
         "required": [
           "scaledJob"
