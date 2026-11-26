@@ -42,13 +42,6 @@ Inside an include Helm renders an unset value as the text "<no value>", and blan
 {{- $maps = append $maps . }}
 {{- end }}
 {{- end }}
-{{- range $map := $maps }}
-{{- range $key, $value := $map }}
-{{- if or (kindIs "invalid" $value) (eq (toString $value) "<no value>") }}
-{{- $_ := unset $map $key }}
-{{- end }}
-{{- end }}
-{{- end }}
 
 {{- /*
 Trigger metadata values and authenticationRef.name support templating, rendered one value at a time
@@ -83,18 +76,20 @@ non-empty, whatever its spacing: an unset reference would otherwise leave e.g. a
 {{- /* History limits are the CronJob ones: the chart defaults replace KEDA's, which keep 100 Jobs of each */}}
 {{- $spec := dict "jobTargetRef" $job "successfulJobsHistoryLimit" $cronjob.spec.successfulJobsHistoryLimit "failedJobsHistoryLimit" $cronjob.spec.failedJobsHistoryLimit "triggers" $triggers }}
 {{- range $key := list "pollingInterval" "minReplicaCount" "maxReplicaCount" }}
-{{- if and (hasKey $scaledJob $key) (not (kindIs "invalid" (index $scaledJob $key))) }}
 {{- $_ := set $spec $key (index $scaledJob $key) }}
-{{- end }}
 {{- end }}
 {{- range $key := list "scalingStrategy" "rollout" }}
 {{- with (get $scaledJob $key) }}
 {{- $_ := set $spec $key . }}
 {{- end }}
 {{- end }}
-{{- range $key, $value := $spec }}
+{{- /* One cleanup for every map collected above, the ScaledJob settings included */}}
+{{- $maps = append $maps $spec }}
+{{- range $map := $maps }}
+{{- range $key, $value := $map }}
 {{- if or (kindIs "invalid" $value) (eq (toString $value) "<no value>") }}
-{{- $_ := unset $spec $key }}
+{{- $_ := unset $map $key }}
+{{- end }}
 {{- end }}
 {{- end }}
 apiVersion: keda.sh/v1alpha1

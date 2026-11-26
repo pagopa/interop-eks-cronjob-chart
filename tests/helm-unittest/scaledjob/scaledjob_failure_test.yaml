@@ -166,6 +166,13 @@ tests:
       - failedTemplate:
           errorPattern: "scaledJob.triggers\\[0\\].authenticationRef.name: \\{\\{ .Values.locals.empty \\}\\} renders empty"
 
+  - it: fails schema validation when the Job restart policy is set to null
+    values:
+      - fail-case-24-null-restart-policy.yaml
+    asserts:
+      - failedTemplate:
+          errorPattern: "(restartPolicy is required|missing property .restartPolicy.)"
+
   - it: still requires a schedule for a CronJob
     templates:
       - templates/cronjob.yaml

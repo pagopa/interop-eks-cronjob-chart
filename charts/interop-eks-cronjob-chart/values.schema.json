@@ -890,6 +890,9 @@
       "then": {
         "properties": {
           "cronjob": {
+            "required": [
+              "restartPolicy"
+            ],
             "properties": {
               "restartPolicy": {
                 "type": "string",
