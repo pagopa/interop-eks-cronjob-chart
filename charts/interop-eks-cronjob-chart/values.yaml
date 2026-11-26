@@ -106,7 +106,7 @@ cronjob:
 # -- Catalog of Flyway migrations keyed by migration domain. The selected key must match cronjob.flywayInitContainer.migrationDomain.
 migrations: {}
 
-# -- KEDA [ScaledJob](https://keda.sh/docs/latest/reference/scaledjob-spec/), rendered instead of the CronJob when `scaledJob.create` is true.
+# KEDA [ScaledJob](https://keda.sh/docs/latest/reference/scaledjob-spec/), rendered instead of the CronJob when `scaledJob.create` is true.
 # It runs the Job configured under `cronjob` (image, env, resources, flywayInitContainer, volumes, restartPolicy, backoffLimit,
 # activeDeadlineSeconds, successfulJobsHistoryLimit, failedJobsHistoryLimit); the CronJob-only `schedule`, `timeZone`,
 # `concurrencyPolicy` and `suspend` must not be set. Warning: the Job inherits the CronJob defaults `restartPolicy: OnFailure`
