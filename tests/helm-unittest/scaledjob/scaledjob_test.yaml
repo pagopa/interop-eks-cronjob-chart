@@ -232,3 +232,21 @@ tests:
       - equal:
           path: spec.failedJobsHistoryLimit
           value: 1
+
+  - it: mounts the Flyway migrations selected with migrationDomain in the Job
+    values:
+      - flyway-migration-domain.yaml
+    asserts:
+      - equal:
+          path: spec.jobTargetRef.template.spec.volumes
+          value:
+            - name: migrations-files
+              projected:
+                sources:
+                  - configMap:
+                      name: test-cronjob-flyway-harvesting
+      - equal:
+          path: spec.jobTargetRef.template.spec.initContainers[0].volumeMounts
+          value:
+            - name: migrations-files
+              mountPath: /flyway/sql

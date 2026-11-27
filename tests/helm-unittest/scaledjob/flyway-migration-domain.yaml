@@ -1,0 +1,14 @@
+# Flyway migrations selected from the root migrations map run in the ScaledJob's Job too
+migrations:
+  harvesting:
+    V1__Init.sql: |-
+      CREATE TABLE IF NOT EXISTS public.sample_table(id INT PRIMARY KEY);
+
+cronjob:
+  flywayInitContainer:
+    create: true
+    image:
+      repositoryPrefix: docker.io
+      repositoryName: flyway/flyway
+      tag: "10"
+    migrationDomain: harvesting
