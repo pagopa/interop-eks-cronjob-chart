@@ -1,0 +1,10 @@
+# KEDA requires string metadata values
+cronjob:
+  schedule: ~
+  restartPolicy: Never
+scaledJob:
+  create: true
+  triggers:
+    - type: aws-sqs-queue
+      metadata:
+        queueLength: 1

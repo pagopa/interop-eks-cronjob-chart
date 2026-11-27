@@ -1,0 +1,10 @@
+# Without restartPolicy every Job KEDA creates would be rejected, with the error only in KEDA's events
+cronjob:
+  schedule: ~
+  restartPolicy: ~
+scaledJob:
+  create: true
+  triggers:
+    - type: aws-sqs-queue
+      metadata:
+        queueLength: "1"

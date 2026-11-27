@@ -1,0 +1,7 @@
+# A ScaledJob needs triggers
+cronjob:
+  schedule: ~
+  restartPolicy: Never
+scaledJob:
+  create: true
+  triggers: []

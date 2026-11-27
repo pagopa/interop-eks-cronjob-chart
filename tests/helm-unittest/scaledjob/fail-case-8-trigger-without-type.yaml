@@ -1,0 +1,9 @@
+# KEDA requires a trigger type
+cronjob:
+  schedule: ~
+  restartPolicy: Never
+scaledJob:
+  create: true
+  triggers:
+    - metadata:
+        queueLength: "1"

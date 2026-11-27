@@ -1,0 +1,12 @@
+# A trigger authentication reference needs a name
+cronjob:
+  schedule: ~
+  restartPolicy: Never
+scaledJob:
+  create: true
+  triggers:
+    - type: aws-sqs-queue
+      authenticationRef:
+        kind: TriggerAuthentication
+      metadata:
+        queueLength: "1"

@@ -1,0 +1,29 @@
+# A ScaledJob as a deployment repository writes it: no cronjob.schedule anywhere,
+# so the chart default (null) must be accepted
+name: harvesting-runner
+namespace: dev
+cronjob:
+  image:
+    repositoryPrefix: docker.io/library
+    repositoryName: busybox
+    tag: "1.36.1"
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 200m
+      memory: 256Mi
+  restartPolicy: Never
+  backoffLimit: 0
+scaledJob:
+  create: true
+  maxReplicaCount: 3
+  triggers:
+    - type: aws-sqs-queue
+      authenticationRef:
+        name: keda-aws
+      metadata:
+        queueURL: https://sqs.eu-south-1.amazonaws.com/123456789012/runs.fifo
+        queueLength: "1"
+        awsRegion: eu-south-1

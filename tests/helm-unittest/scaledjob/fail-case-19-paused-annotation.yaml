@@ -1,0 +1,13 @@
+# scaledJob.paused is the only way to pause a ScaledJob
+cronjob:
+  schedule: ~
+  restartPolicy: Never
+  metadata:
+    annotations:
+      autoscaling.keda.sh/paused: "true"
+scaledJob:
+  create: true
+  triggers:
+    - type: aws-sqs-queue
+      metadata:
+        queueLength: "1"

@@ -1,0 +1,8 @@
+# KEDA requires trigger metadata
+cronjob:
+  schedule: ~
+  restartPolicy: Never
+scaledJob:
+  create: true
+  triggers:
+    - type: aws-sqs-queue

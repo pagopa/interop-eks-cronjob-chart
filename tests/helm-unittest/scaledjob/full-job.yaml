@@ -1,0 +1,52 @@
+# The Job settings under cronjob that a ScaledJob must run unchanged
+configmap:
+  FROM_CONFIGMAP: value
+
+cronjob:
+  metadata:
+    annotations:
+      example.com/owner: harvesting
+  activeDeadlineSeconds: 7200
+  successfulJobsHistoryLimit: 2
+  failedJobsHistoryLimit: 5
+  env:
+    PLAIN: "yes"
+    TEMPLATED: "{{ .Values.namespace }}"
+  envFromSecrets:
+    DB_PASSWORD: "db-credentials.password"
+  envFromFieldRef:
+    POD_NAME: metadata.name
+  volumes:
+    - name: checkout
+      emptyDir:
+        sizeLimit: 1Gi
+  volumeMounts:
+    - name: checkout
+      mountPath: /checkout
+  resources:
+    requests:
+      cpu: 250m
+      memory: 1Gi
+      ephemeral-storage: 1Gi
+    limits:
+      cpu: "1"
+      memory: 2Gi
+      ephemeral-storage: 2Gi
+  flywayInitContainer:
+    create: true
+    image:
+      repositoryPrefix: docker.io
+      repositoryName: flyway/flyway
+      tag: "10"
+    migrationPaths: /migration/harvesting
+
+externalSecrets:
+  app:
+    create: true
+    secretStoreRef:
+      name: dev
+    data:
+      - secretKey: DB_USER
+        remoteRef:
+          key: rds/users/runner
+          property: username
